@@ -1,0 +1,9 @@
+# Claude Code (local settings)
+.claude/settings.local.json
+.claude/**/*.local.*
+
+# Spec Kit
+# .specify/ is versioned; machine-local state is ignored by .specify/.gitignore
+
+# Confidential reference files (not for distribution)
+docs/**/*-confidencial*
