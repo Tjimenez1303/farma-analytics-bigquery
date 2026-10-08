@@ -15,7 +15,7 @@ NIVELES_ATENCION = ("Primer nivel", "Segundo nivel", "Tercer nivel")
 
 
 class ConfigError(Exception):
-    """Invalid configuration value; the CLI maps it to exit code 2."""
+    """Invalid configuration value. The CLI maps it to exit code 2."""
 
 
 @dataclass(frozen=True)
@@ -237,7 +237,7 @@ def _seed(value: Any) -> str:
 
 
 def load_config(path: Path, reference: Reference) -> Config:
-    """Read and validate the configuration; raises ConfigError on the first invalid value."""
+    """Read and validate the configuration. Raises ConfigError on the first invalid value."""
     raw = Path(path).read_bytes()
     try:
         data = tomllib.loads(raw.decode("utf-8"))

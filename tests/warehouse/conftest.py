@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from warehouse import bq
-from warehouse.ddl import Ddl, parse_file
+from warehouse.ddl import Ddl, ViewSpec, parse_file
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 STUB_BIN = REPO_ROOT / "tests" / "fixtures" / "stubs" / "bin"
@@ -48,6 +48,10 @@ class FakeBq:
     def with_verb(self, verb: str) -> list[bq.Command]:
         return [c for c in self.calls if verb in c.argv]
 
+    def missing(self, ref: str) -> FakeBq:
+        """bq show of ref answers Not found, as BigQuery does for a missing view."""
+        return self.when(self.show(ref), 2, stdout=f"Not found: Table {ref}")
+
     @staticmethod
     def show(ref: str) -> Predicate:
         return lambda c: "show" in c.argv and c.argv[-1] == ref
@@ -63,6 +67,29 @@ class FakeBq:
     @staticmethod
     def load(table_ref: str) -> Predicate:
         return lambda c: "load" in c.argv and table_ref in c.argv
+
+
+def _view_metadata(view: ViewSpec) -> dict:
+    """bq show JSON of a GoogleSQL view that matches its section 3 definition."""
+    fields = [
+        {
+            "name": column.name,
+            "type": _API_TYPES.get(column.type, column.type),
+            "description": column.description,
+        }
+        for column in view.columns
+    ]
+    return {
+        "type": "VIEW",
+        "view": {"query": view.query, "useLegacySql": False},
+        "description": view.description,
+        "schema": {"fields": fields},
+    }
+
+
+@pytest.fixture
+def view_metadata() -> Callable[[ViewSpec], dict]:
+    return _view_metadata
 
 
 @pytest.fixture
@@ -89,6 +116,8 @@ def published(ddl) -> dict[str, dict]:
             item["description"] = column.description
             fields.append(item)
         data[table.ref] = {"description": table.description, "schema": {"fields": fields}}
+    if ddl.view is not None:
+        data[ddl.view.ref] = _view_metadata(ddl.view)
     return data
 
 

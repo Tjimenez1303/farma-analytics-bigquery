@@ -34,7 +34,7 @@ def test_all_checks_pass(warehouse_env, fake_bq, published, capsys):
             a for a in run.argv if a.startswith("--parameter")
         ]
     out = capsys.readouterr().out
-    assert "Chequeos: 6 de 6 en 0 filas. Metadatos: 0 diferencias." in out
+    assert "Chequeos: 7 de 7 en 0 filas. Metadatos: 0 diferencias." in out
 
 
 def test_each_check_gets_only_its_parameters(warehouse_env, fake_bq, published):
@@ -58,7 +58,7 @@ def test_failing_check_reports_rows_and_continues(warehouse_env, fake_bq, publis
     out = capsys.readouterr().out
     assert "FALLO nulos: 1 filas" in out
     assert "COMPRAS.CLUE" in out
-    assert "Chequeos: 5 de 6 en 0 filas." in out
+    assert "Chequeos: 6 de 7 en 0 filas." in out
 
 
 def test_truncated_output_is_reported(warehouse_env, fake_bq, published, capsys):
@@ -81,6 +81,15 @@ def test_metadata_difference_fails(warehouse_env, fake_bq, published, capsys):
     fake_bq.answer_show(published)
     assert commands.run_checks() == 1
     assert "Metadatos: 1 diferencias." in capsys.readouterr().out
+
+
+def test_missing_view_fails(warehouse_env, fake_bq, published, capsys):
+    fake_bq.missing("farma_analytics.v_compras_farma_completa")
+    fake_bq.answer_show(published)
+    assert commands.run_checks() == 1
+    assert _check_queries(fake_bq) == []
+    out = capsys.readouterr().out
+    assert "Falta farma_analytics.v_compras_farma_completa: ejecuta 'make bq-vista'" in out
 
 
 def test_missing_dataset_skips_sql_checks(warehouse_env, fake_bq, capsys):

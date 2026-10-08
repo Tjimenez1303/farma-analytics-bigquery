@@ -123,3 +123,13 @@ def test_descriptions_everywhere(ddl):
 def test_table_descriptions_declare_grain(ddl):
     for table in ddl.tables:
         assert "Grano:" in table.description, table.name
+
+
+def test_deliverable_section_order(ddl, repo_root):
+    kinds = [s.kind for s in ddl.statements]
+    assert kinds == ["create_schema"] + ["create_table"] * 3 + ["create_view"] + ["query"] * 4
+    code = strip_comments_and_strings(
+        (repo_root / "sql" / "farma_analytics.sql").read_text(encoding="utf-8")
+    )
+    assert "#standardSQL" not in code and "#legacySQL" not in code
+    assert "|>" not in code

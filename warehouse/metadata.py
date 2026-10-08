@@ -6,7 +6,7 @@ import json
 from collections.abc import Callable, Sequence
 
 from warehouse import bq
-from warehouse.ddl import DatasetSpec, TableSpec
+from warehouse.ddl import DatasetSpec, TableSpec, ViewSpec
 from warehouse.results import CheckResult
 
 CHECK = "esquema_ddl"
@@ -17,26 +17,38 @@ _TYPE_ALIASES = {"INTEGER": "INT64", "FLOAT": "FLOAT64", "BOOLEAN": "BOOL", "REC
 Show = Callable[[str], bq.BqResult]
 
 
+class MetadataError(Exception):
+    """bq show failed for a reason other than a missing object."""
+
+
 def _diff(objeto: str, detalle: str, esperado: object, obtenido: object) -> CheckResult:
     return CheckResult(CHECK, objeto, detalle, str(esperado), str(obtenido))
 
 
-def _read(show: Show, ref: str) -> tuple[dict | None, CheckResult | None]:
+def _not_found(result: bq.BqResult) -> bool:
+    return not result.ok and "not found" in result.output.lower()
+
+
+def _read(
+    show: Show, ref: str, target: str = "bq-schema"
+) -> tuple[dict | None, CheckResult | None]:
     result = show(ref)
     if result.ok:
         return json.loads(result.stdout), None
-    if "not found" in result.output.lower():
-        return None, _diff(ref, f"Falta {ref}: ejecuta 'make bq-schema'", "existe", "no existe")
+    if _not_found(result):
+        return None, _diff(ref, f"Falta {ref}: ejecuta 'make {target}'", "existe", "no existe")
     return None, _diff(ref, "bq show falló", "respuesta de bq show", result.output)
 
 
-def _compare_table(table: TableSpec, published: dict) -> list[CheckResult]:
+def _compare_table(
+    table: TableSpec | ViewSpec, published: dict, kind: str = "tabla"
+) -> list[CheckResult]:
     diffs: list[CheckResult] = []
     if published.get("description", "") != table.description:
         diffs.append(
             _diff(
                 table.name,
-                "descripción de la tabla",
+                f"descripción de la {kind}",
                 table.description,
                 published.get("description", ""),
             )
@@ -61,7 +73,7 @@ def _compare_table(table: TableSpec, published: dict) -> list[CheckResult]:
         if field_type != expected.type:
             diffs.append(_diff(objeto, "tipo", expected.type, field_type))
         mode = field.get("mode", "NULLABLE")
-        if mode != expected.mode:
+        if kind == "tabla" and mode != expected.mode:
             diffs.append(_diff(objeto, "modo", expected.mode, mode))
         description = field.get("description", "")
         if description != expected.description:
@@ -69,8 +81,21 @@ def _compare_table(table: TableSpec, published: dict) -> list[CheckResult]:
     return diffs
 
 
-def compare(dataset: DatasetSpec, tables: Sequence[TableSpec], show: Show) -> list[CheckResult]:
-    """Differences between the DDL and what bq show returns; empty when they match."""
+def _compare_view(view: ViewSpec, published: dict) -> list[CheckResult]:
+    """Type, dialect, description and columns of the view. View fields have no mode."""
+    diffs: list[CheckResult] = []
+    if published.get("type") != "VIEW":
+        diffs.append(_diff(view.name, "tipo de objeto", "VIEW", published.get("type", "")))
+    legacy = published.get("view", {}).get("useLegacySql", True)
+    if legacy is not False:
+        diffs.append(_diff(view.name, "dialecto de la vista", "useLegacySql = false", legacy))
+    return diffs + _compare_table(view, published, kind="vista")
+
+
+def compare(
+    dataset: DatasetSpec, tables: Sequence[TableSpec], show: Show, view: ViewSpec | None = None
+) -> list[CheckResult]:
+    """Differences between the DDL and what bq show returns, empty when they match."""
     published, missing = _read(show, dataset.name)
     if missing is not None:
         return [missing]
@@ -103,12 +128,31 @@ def compare(dataset: DatasetSpec, tables: Sequence[TableSpec], show: Show) -> li
             diffs.append(missing)
             continue
         diffs.extend(_compare_table(table, table_json))
+    if view is not None:
+        view_json, missing = _read(show, view.ref, target="bq-vista")
+        diffs.extend([missing] if missing is not None else _compare_view(view, view_json))
     return diffs
 
 
-def verify(dataset: DatasetSpec, tables: Sequence[TableSpec]) -> list[CheckResult]:
+def _real_show(ref: str) -> bq.BqResult:
+    return bq.execute(bq.show(ref))
+
+
+def verify(
+    dataset: DatasetSpec, tables: Sequence[TableSpec], view: ViewSpec | None = None
+) -> list[CheckResult]:
     """compare() against the real bq show."""
-    return compare(dataset, tables, lambda ref: bq.execute(bq.show(ref)))
+    return compare(dataset, tables, _real_show, view)
+
+
+def object_exists(ref: str, show: Show | None = None) -> bool:
+    """Whether bq show finds ref. Any error other than not found raises MetadataError."""
+    result = (show or _real_show)(ref)
+    if result.ok:
+        return True
+    if _not_found(result):
+        return False
+    raise MetadataError(f"bq show {ref} falló: {result.output}")
 
 
 def missing_objects(diffs: Sequence[CheckResult]) -> bool:

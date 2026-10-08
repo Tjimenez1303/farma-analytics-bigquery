@@ -23,3 +23,17 @@ Cada requisito del proyecto aparece con el artefacto que lo cumple y la forma de
 | Describir el dataset, cada tabla y cada columna | `OPTIONS (description = ...)` en las secciones 1 y 2 | `tests/warehouse/test_ddl.py` y la verificación de metadatos |
 | Comprobar la calidad de los datos cargados | Seis consultas en [`sql/checks/`](../sql/checks), ejecutadas con `make bq-checks` y al final de cada carga | `tests/warehouse/test_checks_sql.py` y `tests/warehouse/test_checks_command.py`. En BigQuery, los seis chequeos devuelven 0 filas |
 | Demostrar que cada chequeo detecta su error | Casos en [`sql/checks/negativos/`](../sql/checks/negativos), ejecutados con `make bq-checks-negativos` | `tests/warehouse/test_negative_checks.py`. En BigQuery, 6 de 6 casos detectados sin facturar bytes |
+
+## Fase 2: consultas SQL y modelado
+
+| Requisito | Artefacto | Verificación |
+|---|---|---|
+| Crear la vista `v_compras_farma_completa` | Sección 3 de [`sql/farma_analytics.sql`](../sql/farma_analytics.sql), desplegada con `make bq-vista` | `tests/warehouse/test_view_sql.py` comprueba el nombre, las 22 columnas, sus tipos y que la vista no agrega ni ordena. En BigQuery, `make bq-vista` termina con 7 de 7 chequeos en 0 y sin diferencias de metadatos |
+| Unir `COMPRAS` con `CLUE_CAT` por `CLUE` y con `CUADRO_BASICO` por `CLAVE` con `INNER JOIN` | Los dos `INNER JOIN` de la sección 3 | `tests/warehouse/test_view_sql.py` comprueba los joins y sus condiciones. El chequeo `reconciliacion_vista` confirma 298 500 filas y el mismo `IMPORTE` que el `INNER JOIN` de las tablas |
+| Describir la vista y cada columna | `OPTIONS (description = ...)` de la vista y de su lista de columnas | `tests/warehouse/test_view_sql.py` y la verificación de metadatos con `bq show`. `INFORMATION_SCHEMA.COLUMN_FIELD_PATHS` devuelve las 22 descripciones |
+| Las 5 moléculas con más `IMPORTE` | Primera consulta de la sección 4 | `tests/warehouse/test_queries_sql.py`. En BigQuery, `make bq-consultas` comprueba que su importe coincide con la consulta de precios |
+| La institución y la entidad con mayor volumen de compra | Segunda consulta de la sección 4 | `tests/warehouse/test_queries_sql.py`. En BigQuery, `make bq-consultas` comprueba sus participaciones y que el líder de la combinación no supera a los otros dos |
+| El precio promedio por pieza por molécula y fabricante | Tercera y cuarta consultas de la sección 4 | `tests/warehouse/test_queries_sql.py`. En BigQuery, `make bq-consultas` comprueba que sus importes y piezas suman el total de la vista |
+| Resolver las ambigüedades de las preguntas | Comentarios de cada consulta y la sección "Vista y consultas analíticas" del [README](../README.md) | Revisión de las definiciones y `make lint-prosa` |
+| Comprobar la vista después de cada cambio | [`sql/checks/07_reconciliacion_vista.sql`](../sql/checks/07_reconciliacion_vista.sql) y su caso negativo | `tests/warehouse/test_checks_sql.py` y `tests/warehouse/test_negative_checks.py`. En BigQuery, `make bq-checks-negativos` detecta 7 de 7 casos sin facturar bytes |
+

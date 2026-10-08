@@ -112,7 +112,7 @@ def manufacturer_probabilities(
     year: int,
     chosen: dict[str, str],
 ) -> list[tuple[str, float]]:
-    """P3 reference share by institution; in P5 molecules the chosen generic share comes first."""
+    """P3 reference share by institution. In P5 molecules the chosen generic share comes first."""
     reference, *generics = supplies.autorizados[molecula]
     p_ref = config.p3.prob_referencia[institucion]
     if molecula in chosen:

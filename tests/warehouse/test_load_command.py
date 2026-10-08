@@ -92,11 +92,24 @@ def test_successful_load(warehouse_env, fake_bq, published, data, capsys):
     assert any("show" in c.argv for c in fake_bq.calls[:first_load])
     assert any("show" in c.argv for c in fake_bq.calls[last_load:])
     checks = [c for c in fake_bq.calls[last_load:] if "query" in c.argv]
-    assert len(checks) == 14  # six checks and the fingerprint, each with its dry run
+    assert len(checks) == 16  # seven checks and the fingerprint, each with its dry run
 
     out = capsys.readouterr().out
-    assert "Chequeos: 6 de 6 en 0 filas. Metadatos: 0 diferencias." in out
+    assert "Chequeos: 7 de 7 en 0 filas. Metadatos: 0 diferencias." in out
     assert "COMPRAS        1      42" in out
+
+
+def test_load_without_view_warns_and_passes(warehouse_env, fake_bq, published, data, capsys):
+    fake_bq.missing("farma_analytics.v_compras_farma_completa")
+    fake_bq.answer_show(published)
+    fake_bq.when(fake_bq.query_run("AS HUELLA"), stdout=json.dumps(FINGERPRINT_ROWS))
+    assert _run(data) == 0
+    queries = [c for c in fake_bq.calls if "query" in c.argv]
+    assert not any("CREATE OR REPLACE VIEW" in c.stdin for c in queries)
+    assert not any("'reconciliacion_vista' AS CHEQUEO" in c.stdin for c in queries)
+    out = capsys.readouterr().out
+    assert "La vista no está desplegada: ejecuta 'make bq-vista'." in out
+    assert "Chequeos: 6 de 6 en 0 filas. Metadatos: 0 diferencias." in out
 
 
 def test_failed_load_keeps_previous_content(warehouse_env, fake_bq, published, data, capsys):
@@ -124,4 +137,13 @@ def test_failed_check_skips_fingerprint(warehouse_env, fake_bq, published, data,
     fake_bq.when(fake_bq.query_run("'unicidad_claves' AS CHEQUEO"), stdout=json.dumps([row]))
     assert _run(data) == 1
     assert not any("AS HUELLA" in (c.stdin or "") for c in fake_bq.calls)
-    assert "Chequeos: 5 de 6 en 0 filas." in capsys.readouterr().out
+    assert "Chequeos: 6 de 7 en 0 filas." in capsys.readouterr().out
+
+
+def test_view_lookup_error_fails_the_load(warehouse_env, fake_bq, published, data, capsys):
+    fake_bq.when(
+        fake_bq.show("farma_analytics.v_compras_farma_completa"), 2, stderr="Access Denied"
+    )
+    fake_bq.answer_show(published)
+    assert _run(data) == 1
+    assert "Access Denied" in capsys.readouterr().out
