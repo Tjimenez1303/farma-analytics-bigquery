@@ -58,9 +58,14 @@ def test_clean_documents_have_no_marks(lint, repo_root, name):
     assert proc.returncode == 0
 
 
-def test_sql_only_checks_comments(lint, repo_root):
-    proc, marks = lint(fixture(repo_root, "comentarios.sql"))
-    assert [(int(m["line"]), m["cat"]) for m in marks] == [(1, "raya")], proc.stdout
+def test_sql_files_are_ignored(lint, tmp_path):
+    sql = tmp_path / "comentarios.sql"
+    sql.write_text("-- El cambio entra hoy — sin revisión.\nSELECT 1;\n", encoding="utf-8")
+    proc, marks = lint(sql)
+    assert marks == [], proc.stdout
+    assert proc.returncode == 0
+    assert "se ignora" in proc.stderr
+    assert "(solo .md y .txt)" in proc.stderr
 
 
 def test_stdin(lint):
