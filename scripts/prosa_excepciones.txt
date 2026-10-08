@@ -1,0 +1,33 @@
+# Exceptions for scripts/lint_prosa.sh.
+# [terminos]: allowed domain terms, removed before looking for filler words.
+# [nombres_propios]: capitalized words accepted by the title-case rule.
+
+[terminos]
+clave primaria
+estimador robusto
+medicamento innovador
+
+[nombres_propios]
+BigQuery
+GoogleSQL
+Google
+Cloud
+Data
+Studio
+Looker
+Dataform
+SQLFluff
+Python
+Node
+Homebrew
+Linux
+macOS
+GitHub
+Actions
+México
+IMSS
+ISSSTE
+SEDENA
+SEMAR
+PEMEX
+INEGI

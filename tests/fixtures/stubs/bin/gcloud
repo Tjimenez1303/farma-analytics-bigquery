@@ -1,0 +1,44 @@
+#!/bin/bash
+# Fake gcloud driven by STUB_* environment variables.
+echo "gcloud $*" >> "${STUB_LOG:-/dev/null}"
+args=" $* "
+case "$args" in
+  " version "*)
+    echo "Google Cloud SDK ${STUB_GCLOUD_VERSION:-540.0.0}"
+    echo "bq ${STUB_BQ_VERSION:-2.1.20}"
+    ;;
+  *" auth list "*)
+    echo "${STUB_ACCOUNT:-}"
+    ;;
+  *" auth application-default print-access-token "*)
+    if [ "${STUB_ADC:-ok}" = "ok" ]; then echo "fake-token"; else
+      echo "ERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found." >&2
+      exit 1
+    fi
+    ;;
+  *" config get-value project "*)
+    echo "${STUB_PROJECT:-}"
+    ;;
+  *" billing projects describe "*)
+    case "${STUB_BILLING:-True}" in
+      error) echo "ERROR: PERMISSION_DENIED" >&2; exit 1 ;;
+      *) echo "${STUB_BILLING:-True}" ;;
+    esac
+    ;;
+  *" quotas info describe "*)
+    printf '{"quotaId": "QueryUsagePerDay", "metricUnit": "%s"}\n' "${STUB_QUOTA_UNIT:-MiBy/d/{project}}"
+    ;;
+  *" quotas preferences update "*)
+    echo "Updated quota preference."
+    ;;
+  *" billing budgets list "*)
+    if [ -n "${STUB_BUDGETS:-}" ]; then echo "$STUB_BUDGETS" | tr ',' '\n'; fi
+    ;;
+  *" billing budgets create "*|*" billing budgets update "*)
+    echo "ok"
+    ;;
+  *)
+    echo "stub gcloud: unhandled: $*" >&2
+    exit 64
+    ;;
+esac

@@ -1,0 +1,8 @@
+#!/bin/bash
+# Fake curl: network reachability and tokeninfo.
+echo "curl $*" >> "${STUB_LOG:-/dev/null}"
+[ "${STUB_NETWORK:-ok}" = "ok" ] || exit 6
+case " $* " in
+  *tokeninfo*) cat > /dev/null; printf '{"email": "%s"}\n' "${STUB_ADC_EMAIL:-${STUB_ACCOUNT:-}}" ;;
+  *) : ;;
+esac

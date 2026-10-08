@@ -14,6 +14,7 @@
 
 - Q: ¿Qué proyecto de GCP se usará para este trabajo? → A: Un proyecto nuevo y dedicado, creado desde cero, con cuenta de facturación asociada (no sandbox).
 - Q: ¿Qué chequeos corren de forma automática y dónde? → A: SQLFluff y el bloqueo de secretos (`.env`, claves de cuenta de servicio y credenciales de Dataform) corren en pre-commit y también en GitHub Actions en cada PR hacia `main`, sin acceso a GCP (opción A: el check avisa pero no bloquea el merge). El lint de prosa queda como script que se ejecuta a mano con un comando documentado, fuera de los hooks y de CI. No hay ningún chequeo sobre material de referencia local.
+- Q: ¿Con qué se gestionan Python y las dependencias de desarrollo? → A: Con uv. La versión de Python queda fijada en `.python-version` (3.12) y uv la descarga si falta. Las dependencias de desarrollo van en `pyproject.toml` y `uv.lock`, en local y en CI (decidido tras `/speckit-analyze`).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -90,7 +91,10 @@ cobrarse, (c) la alerta de presupuesto y la cuota diaria aparecen configuradas e
 **Acceptance Scenarios**:
 
 1. **Given** el proyecto con el ajuste de dialecto aplicado, **When** alguien envía un job en
-   legacy SQL (desde el CLI, desde una biblioteca o desde la consola), **Then** BigQuery lo rechaza.
+   legacy SQL desde el CLI o desde una biblioteca (API), **Then** BigQuery lo rechaza. El
+   comportamiento en la consola se comprueba una vez y se documenta en el README, porque la
+   documentación de BigQuery dice que el ajuste aplica al CLI y a la API y no cambia el dialecto
+   por defecto de la consola.
 2. **Given** el `.bigqueryrc` versionado y el `Makefile`, **When** un objetivo del `Makefile`
    ejecuta `bq`, **Then** `bq` usa el `.bigqueryrc` del repositorio aunque la persona tenga un
    `~/.bigqueryrc` propio con otros valores.
@@ -122,8 +126,8 @@ de escribir el primer `.sql` evita retrabajo, pero no bloquea el arranque.
 
 **Independent Test**: con los hooks instalados, intentar un commit con un `.sql` que viola reglas
 de estilo y otro con un archivo `.env`; los dos se bloquean con un mensaje claro. Un commit con un
-`.sql` que cumple el estilo pasa. Un PR con el mismo `.sql` no conforme muestra el check de GitHub
-en rojo.
+`.sql` que cumple el estilo pasa. El check de GitHub ejecuta exactamente el mismo comando que
+`make lint`, así que ese comando falla en local con el `.sql` no conforme.
 
 **Acceptance Scenarios**:
 
@@ -238,10 +242,14 @@ y obtener cero marcas.
   todos los chequeos obligatorios aunque alguno falle y termine con código 0 solo si todos los
   obligatorios son correctos.
 - **FR-002**: El diagnóstico MUST verificar que están instaladas, en una versión igual o superior a
-  la mínima declarada, estas herramientas: `gcloud`, `bq`, Python (3.12 o superior), Node.js,
-  Dataform CLI, SQLFluff, ripgrep, pre-commit y `make`.
-- **FR-003**: Las versiones mínimas (y las exactas, cuando la constitución exige fijarlas) MUST
-  declararse en un único lugar versionado que leen tanto el diagnóstico como el README.
+  la mínima declarada (o igual a la exacta cuando está fijada), estas herramientas: `gcloud`, `bq`,
+  uv, el Python del proyecto (la versión fijada en `.python-version`), Node.js, Dataform CLI,
+  SQLFluff, ripgrep, pre-commit y `make`.
+- **FR-003**: Cada versión MUST declararse una sola vez: en el archivo que lee la propia
+  herramienta cuando existe (`.python-version`, `required-version` y grupo `dev` de
+  `pyproject.toml` con su `uv.lock`, `package.json` con su lockfile, `rev` de los hooks) y, para el
+  resto de herramientas del sistema, en `scripts/tool_versions.env`. El diagnóstico lee esas
+  fuentes y el README las enlaza.
 - **FR-004**: El diagnóstico MUST verificar que existe una cuenta activa en `gcloud` y que ADC
   devuelve una credencial válida, y MUST avisar si ambas pertenecen a cuentas distintas o si ADC
   no tiene proyecto de cuota.
@@ -258,7 +266,7 @@ y obtener cero marcas.
 - **FR-009**: El diagnóstico MUST NOT ejecutar consultas facturables ni modificar recursos: solo
   MAY usar dry runs, lecturas de metadatos y comandos locales.
 - **FR-010**: Cada chequeo del informe MUST mostrar su nombre, su estado (correcto, aviso, fallo o
-  no evaluado), el valor detectado y, en caso de fallo o aviso, el comando o la sección del README
+  no evaluado, que el informe escribe como `OK`, `AVISO`, `FALLO` y `OMITIDO`), el valor detectado y, en caso de fallo o aviso, el comando o la sección del README
   que lo corrige. El informe MUST terminar con un resumen de cuántos chequeos hay en cada estado.
 - **FR-011**: Los chequeos que dependen de otro que falló (por ejemplo, los de BigQuery sin
   proyecto) MUST marcarse como no evaluados, con el motivo.
@@ -301,9 +309,10 @@ y obtener cero marcas.
 
 **Configuración local y secretos**
 
-- **FR-022**: El repositorio MUST versionar `.env.example` con todas las variables que usan el
-  `Makefile` y los scripts, cada una con un comentario y un valor de ejemplo vacío o ficticio. MUST
-  NOT contener secretos, IDs reales ni datos personales.
+- **FR-022**: El repositorio MUST versionar `.env.example` con todas las variables que una persona
+  puede configurar en el `Makefile` y los scripts (las obligatorias y las opcionales, estas
+  comentadas), cada una con un comentario y un valor de ejemplo vacío o ficticio. Las variables que
+  solo usan las pruebas quedan fuera. MUST NOT contener secretos, IDs reales ni datos personales.
 - **FR-023**: `.gitignore` MUST excluir `.env`, claves de cuenta de servicio, archivos de
   credenciales de Dataform y cualquier otro archivo de credenciales local.
 - **FR-024**: La autenticación documentada MUST ser ADC con login de usuario. El README MUST NOT
@@ -325,8 +334,9 @@ y obtener cero marcas.
   hacia `main`, ejecute los mismos chequeos de pre-commit sobre todo el repositorio, sin
   credenciales ni acceso a GCP, y publique el resultado como check del PR. El check MUST NOT
   configurarse como requisito de merge en esta feature.
-- **FR-027**: Las versiones de SQLFluff, pre-commit, los hooks y Dataform CLI MUST fijarse en
-  versión exacta en archivos versionados.
+- **FR-027**: Las versiones de Python, SQLFluff, pre-commit, pytest, los hooks y Dataform CLI MUST
+  fijarse en versión exacta en archivos versionados, con lockfile para las dependencias de Python
+  (`uv.lock`) y de Node (`package-lock.json`).
 - **FR-028**: El repositorio MUST incluir ejemplos de SQL (uno que cumple y otro con violaciones)
   que permitan comprobar que la configuración de SQLFluff acepta y rechaza lo esperado.
 
@@ -367,7 +377,7 @@ y obtener cero marcas.
   repositorio. Atributos: location, dialecto para consultas y para `mk`, límite de bytes
   facturados. Única fuente de la location.
 - **Configuración local** (`.env`, a partir de `.env.example`): valores propios de cada persona que
-  no se versionan, como el ID de proyecto y los datos para crear el presupuesto.
+  no se versionan, como el ID de proyecto, los datos para crear el presupuesto y la cuota diaria.
 - **Catálogo de prerrequisitos**: lista de herramientas con su comando de detección, versión mínima
   o exacta e instrucción de instalación. Lo leen el diagnóstico y el README.
 - **Informe de diagnóstico**: lista de chequeos con nombre, estado, valor detectado y remedio, más
@@ -386,11 +396,12 @@ y obtener cero marcas.
 - **SC-002**: El diagnóstico termina en 60 segundos o menos con una conexión normal y factura 0
   bytes: el historial de jobs del proyecto no muestra ningún job ejecutado por él.
 - **SC-003**: En los 8 escenarios de fallo inducido (herramienta ausente, versión inferior a la
-  mínima, sin ADC, sin proyecto, dialecto sin fijar, ajuste de dialecto en otra región, location
-  distinta del dataset existente, credenciales dentro del repositorio), el diagnóstico marca el
+  mínima, Python del proyecto distinto del fijado, sin ADC, sin proyecto, dialecto sin fijar en la
+  región configurada, location distinta del dataset existente, credenciales dentro del
+  repositorio), el diagnóstico marca el
   chequeo correcto como fallo, muestra un remedio y termina con código distinto de 0 (8 de 8).
-- **SC-004**: El 100 % de los intentos de ejecutar legacy SQL en el proyecto, desde el CLI o desde
-  la consola, son rechazados.
+- **SC-004**: El 100 % de los intentos de ejecutar legacy SQL en el proyecto desde el CLI o la API
+  son rechazados. El resultado en la consola se comprueba una vez y queda documentado.
 - **SC-005**: Una consulta cuya estimación supera el límite configurado falla sin coste (0 bytes
   facturados).
 - **SC-006**: Repetir dos veces seguidas los comandos de ajuste del proyecto deja exactamente un
@@ -398,8 +409,9 @@ y obtener cero marcas.
 - **SC-007**: El repositorio contiene 0 secretos y 0 archivos `.env`, y los intentos de versionar
   credenciales se bloquean en local (3 de 3 tipos de archivo del escenario 3 de la historia 3:
   `.env`, clave de cuenta de servicio y credenciales de Dataform).
-- **SC-010**: El 100 % de los PR hacia `main` muestran el check de CI, que resulta rojo cuando el PR
-  incluye un `.sql` no conforme o un archivo de credenciales.
+- **SC-010**: El 100 % de los PR hacia `main` muestran el check de CI. Ese check ejecuta el mismo
+  comando que `make lint`, y ese comando falla en local cuando hay un `.sql` no conforme o un
+  archivo de credenciales.
 - **SC-008**: El lint de SQL acepta el ejemplo conforme sin violaciones y detecta cada una de las
   violaciones sembradas en el ejemplo no conforme (100 %).
 - **SC-009**: El lint de prosa detecta el 100 % de las violaciones sembradas (al menos una por cada
@@ -415,6 +427,14 @@ y obtener cero marcas.
 - Cada persona que reproduzca la solución usa su propio proyecto de GCP y su propia cuenta,
   creado con los mismos pasos del README. El ID de proyecto sale de `gcloud` o de `.env` y nunca
   se versiona.
+- uv gestiona el Python del proyecto y sus dependencias de desarrollo, en local y en CI. Sustituye
+  a `venv` y `pip`, y descarga la versión fijada de Python si falta.
+- Los scripts usan `curl`, que viene de serie en macOS y en las distribuciones de Linux habituales,
+  por eso no es un chequeo del diagnóstico.
+- Se asume que los dry runs no quedan en el historial de jobs. La validación de SC-002 lo comprueba
+  y, si aparecieran, el criterio se reformula para exigir 0 bytes facturados.
+- El README se escribe en español, como la constitución y las reglas de prosa, y llama Data Studio
+  a la herramienta de dashboards, su nombre desde abril de 2026.
 - La location por defecto es `US`, como indica la constitución. Cambiarla es editar una sola línea
   de `.bigqueryrc`.
 - El proyecto de GCP es nuevo, dedicado a este trabajo y con facturación asociada, como recomienda

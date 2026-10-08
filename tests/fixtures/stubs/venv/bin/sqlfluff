@@ -1,0 +1,4 @@
+#!/bin/bash
+# Fake sqlfluff for tests.
+echo "sqlfluff $*" >> "${STUB_LOG:-/dev/null}"
+echo "sqlfluff, version ${STUB_SQLFLUFF_VERSION:-4.3.0}"

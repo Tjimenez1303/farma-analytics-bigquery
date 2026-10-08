@@ -1,0 +1,4 @@
+#!/bin/bash
+# Fake make for tests.
+echo "make $*" >> "${STUB_LOG:-/dev/null}"
+echo "GNU Make ${STUB_MAKE_VERSION:-3.81}"
