@@ -18,8 +18,9 @@ están permitidas. Su contenido sale de [data-model.md](../data-model.md) y de
    y tamaños. Una tabla de contrastes con estas columnas exactas:
    `| Primer plano | Fondo | Uso | Contraste | Umbral |`, donde "Contraste" se escribe como
    `N.NN:1` y "Umbral" como `4.5:1`, `3:1` o `No aplica`.
-5. **Rejilla y disposición.** Tamaño del lienzo, rejilla y la tabla de coordenadas de cada
-   componente.
+5. **Rejilla, disposición y textos fijos.** Tamaño del lienzo, rejilla, la tabla de coordenadas de
+   cada componente y el texto literal del título, el subtítulo, la etiqueta "Periodo", el botón y la
+   etiqueta de comparación ([data-model.md](../data-model.md#textos-fijos)).
 6. **Controles.** La tabla de controles con su valor por defecto, búsqueda, selección múltiple y
    límite de valores, y la cascada.
 7. **Tarjetas.** Métrica, unidad, formato y comparación de cada una, y cómo se marca el sentido del
@@ -31,13 +32,13 @@ están permitidas. Su contenido sale de [data-model.md](../data-model.md) y de
    origen de cada cifra.
 10. **Comportamientos comprobados en el producto.** Una tabla con lo que la documentación no
     aclaraba y el resultado observado: moneda MXN, `NULLIF` sobre agregados, flechas de la tarjeta,
-    comparación sin datos, fechas de "Previous year", Reset y el rango de fechas, sufijos de los
+    comparación sin datos, fechas exactas del periodo anterior, Reset y el rango de fechas, sufijos de los
     números compactos, fuente Roboto y `MX-CMX` en el mapa (con la alternativa aplicada si la hubo).
 11. **Verificación contra el SQL.** El comando `make bq-dashboard` con sus variables y el registro de
     verificación (estado, componente, valor del tablero, valor del SQL, resultado) para el estado
     inicial y el filtrado.
-12. **Compartir.** El modo de compartir, el enlace de lectura y la comprobación sin sesión (fecha y
-    navegador).
+12. **Compartir.** El modo de compartir, el enlace de lectura, la comprobación sin sesión (fecha y
+    navegador) y el resultado de la prueba con un analista que no conoce el proyecto (SC-005).
 
 ## Reglas que se prueban (`tests/docs/test_dashboard_spec.py`)
 

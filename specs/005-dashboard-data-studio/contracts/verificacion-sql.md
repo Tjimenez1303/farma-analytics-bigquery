@@ -20,13 +20,13 @@ sql/dashboard/
 - Cada archivo empieza con un comentario en inglés que dice qué componente del tablero verifica.
 - Cada consulta lee solo de `farma_analytics.v_compras_farma_completa` con el alias `vista`, sin ID
   de proyecto, y no hace joins.
-- Una CTE `filtrada` aplica el bloque de filtros, que es idéntico en las cinco consultas salvo la
-  línea de fechas, ausente en `kpis_por_anio.sql`:
+- Una CTE `filtrada` aplica el bloque de filtros, que es idéntico en las cinco consultas. La línea
+  de fechas va al final del bloque y solo falta en `kpis_por_anio.sql`, de modo que el resto sigue
+  siendo SQL válido. La prueba compara el bloque sin esa última línea:
 
   ```sql
   WHERE
-      vista.FECHA BETWEEN @fecha_inicio AND @fecha_fin
-      AND (ARRAY_LENGTH(@entidades) = 0 OR vista.ENTIDAD IN UNNEST(@entidades))
+      (ARRAY_LENGTH(@entidades) = 0 OR vista.ENTIDAD IN UNNEST(@entidades))
       AND (ARRAY_LENGTH(@instituciones) = 0 OR vista.INSTITUCION IN UNNEST(@instituciones))
       AND (
           ARRAY_LENGTH(@grupos_institucionales) = 0
@@ -37,6 +37,7 @@ sql/dashboard/
           OR vista.GRUPO_TERAPEUTICO IN UNNEST(@grupos_terapeuticos)
       )
       AND (ARRAY_LENGTH(@moleculas) = 0 OR vista.MOLECULA IN UNNEST(@moleculas))
+      AND vista.FECHA BETWEEN @fecha_inicio AND @fecha_fin
   ```
 
 - El precio es `SAFE_DIVIDE(SUM(...IMPORTE), SUM(...PIEZAS))`. No hay `AVG` de precios.
@@ -65,17 +66,19 @@ make bq-dashboard [DESDE=AAAA-MM-DD] [HASTA=AAAA-MM-DD] [ENTIDAD=a,b] [INSTITUCI
 - Llama a `python -m warehouse dashboard` con `--desde`, `--hasta`, `--entidad`, `--institucion`,
   `--grupo-institucional`, `--grupo-terapeutico` y `--molecula`. Los valores por defecto son
   2025-01-01, 2025-12-31 y listas vacías.
-- El texto de `--help` de cada opción dice qué filtro del tablero reproduce, con su nombre visible
-  ("Periodo", "Entidad", etc.).
+- El texto de `--help` de cada opción dice qué filtro del tablero reproduce, con su etiqueta visible
+  ("Periodo", "Entidad", "Institución", "Grupo institucional", "Grupo terapéutico", "Molécula").
 
 ## Comportamiento
 
 1. Valida las fechas (formato ISO, inicio menor o igual que fin) y que los nombres de los filtros no
    estén vacíos. Un error termina con código 2 sin llamar a `bq`.
-2. Comprueba que la vista tiene filas con `sql/ops/totales_vista.sql`. Si no las tiene, se detiene
-   con el mensaje de `make bq-consultas`.
-3. Calcula el periodo de referencia: las mismas fechas un año antes. El 29 de febrero pasa a ser el
-   28 de febrero.
+2. Comprueba, como `make bq-consultas`, que la vista existe y tiene filas. Si no existe, se detiene
+   con "Falta farma_analytics.v_compras_farma_completa: ejecuta 'make bq-vista'". Si no tiene filas,
+   con "La vista no tiene filas: ejecuta 'make bq-load'". En los dos casos termina con código 1.
+3. Calcula el periodo de referencia igual que *Previous period* de Data Studio: el mismo número de
+   días, terminando el día anterior a `--desde`. Por ejemplo, 2025-01-01 a 2025-12-31 (365 días) da
+   2024-01-02 a 2024-12-31, y 2024-03-01 a 2024-03-31 da 2024-01-30 a 2024-02-29.
 4. Ejecuta, cada una con dry run antes y con las labels de `BQ_JOB_LABELS`:
    - `kpis.sql` con el periodo pedido y con el de referencia;
    - `kpis_por_anio.sql`, `gasto_entidad.sql`, `participacion_institucion.sql` y
@@ -84,9 +87,11 @@ make bq-dashboard [DESDE=AAAA-MM-DD] [HASTA=AAAA-MM-DD] [ENTIDAD=a,b] [INSTITUCI
    `--parameter=entidades:ARRAY<STRING>:["Jalisco"]`, con los valores codificados en JSON.
 5. Imprime:
    - el estado de filtros en una línea;
-   - las tres tarjetas con el valor del periodo, el de referencia y el cambio en %, con el formato
-     del tablero (millones con 1 decimal, precio con 2) y el valor exacto entre paréntesis;
-   - los totales por año;
+   - las fechas exactas del periodo de referencia;
+   - las tres tarjetas con el valor del periodo, el de referencia y el cambio en %, con importes y
+     piezas en millones (1 y 2 decimales), el precio con 2 decimales y el valor exacto entre
+     paréntesis;
+   - los totales por año (la consulta por año);
    - las entidades, las instituciones y el top 10 en tablas de texto con los números alineados a la
      derecha;
    - los bytes estimados de cada consulta.
@@ -95,8 +100,9 @@ make bq-dashboard [DESDE=AAAA-MM-DD] [HASTA=AAAA-MM-DD] [ENTIDAD=a,b] [INSTITUCI
    - **D2**: la suma del importe de las instituciones es igual al importe de `kpis.sql`, y sus
      participaciones suman 100 con una tolerancia de 0.01;
    - **D3**: cuando el periodo pedido es un año natural completo, el importe y las piezas de
-     `kpis.sql` son iguales a los de ese año en `kpis_por_anio.sql`, y lo mismo para el periodo de
-     referencia;
+     `kpis.sql` son iguales a los de ese año en `kpis_por_anio.sql`. Un año sin filas cuenta como 0
+     en los dos lados (`kpis.sql` devuelve NULL y `kpis_por_anio.sql` no devuelve la fila). El
+     periodo de referencia no se compara, porque con *Previous period* no es un año natural;
    - **D4**: el importe del top 10 no supera el importe de `kpis.sql`, y sus filas están ordenadas
      de mayor a menor.
 7. Termina con código 0 si todo cuadra.
@@ -105,11 +111,13 @@ make bq-dashboard [DESDE=AAAA-MM-DD] [HASTA=AAAA-MM-DD] [ENTIDAD=a,b] [INSTITUCI
 
 - Construcción de parámetros: fechas, listas vacías, listas con varios valores y nombres con
   tilde, codificados en JSON.
-- Cálculo del periodo de referencia, incluido un 29 de febrero.
+- Cálculo del periodo de referencia con los dos ejemplos del comportamiento (365 días de 2025 y un
+  mes que termina el 29 de febrero).
 - Cada consulta va precedida de su dry run, lleva las labels y no repite los flags de
   `.bigqueryrc`.
 - Un dry run fallido detiene el comando sin ejecutar la consulta.
-- La vista vacía detiene el comando antes de ejecutar las consultas del tablero.
+- La vista ausente y la vista vacía detienen el comando, con su mensaje, antes de ejecutar las
+  consultas del tablero.
 - D1 a D4 aceptan resultados que cuadran y rechazan cada caso que no cuadra.
 - Ningún valor de los catálogos de referencia del generador para entidad, institución, grupo
   institucional, molécula y grupo terapéutico contiene una coma.

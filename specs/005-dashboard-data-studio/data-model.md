@@ -67,14 +67,15 @@ Reglas de validación:
 
 ## Rejilla y disposición
 
-Lienzo de 1600 × 900 px, rejilla de 10 px, márgenes de 20 px. Coordenadas en px desde la esquina
+Lienzo de 1600 × 900 px, rejilla de 10 px, márgenes laterales e inferior de 20 px y margen superior
+de 10 px. Coordenadas en px desde la esquina
 superior izquierda (x, y, ancho, alto). Es la maqueta aprobada el 2026-10-08.
 
 | Componente | x | y | Ancho | Alto | Nivel de la pirámide |
 |---|---|---|---|---|---|
 | Título | 20 | 10 | 1560 | 30 | 1 |
 | Subtítulo de transparencia | 20 | 40 | 1560 | 30 | 1 |
-| Control de rango de fechas | 20 | 80 | 230 | 50 | 1 |
+| Control de rango de fechas, con la etiqueta de texto "Periodo" (12 px) encima | 20 | 80 | 230 | 50 | 1 |
 | Lista Entidad | 260 | 80 | 220 | 50 | 1 |
 | Lista Institución | 490 | 80 | 220 | 50 | 1 |
 | Lista Grupo institucional | 720 | 80 | 220 | 50 | 1 |
@@ -89,6 +90,21 @@ superior izquierda (x, y, ancho, alto). Es la maqueta aprobada el 2026-10-08.
 | Mapa Gasto por entidad | 540 | 270 | 510 | 280 | 3 |
 | Barras Participación por institución | 1070 | 270 | 510 | 280 | 3 |
 | Tabla Top 10 molécula-fabricante | 540 | 570 | 1040 | 310 | 4 |
+
+Si se aplica la alternativa de flechas de R5, se añaden tres tarjetas de 60 × 30 en x 310, 690 y
+1070, y 220, y el texto de la excepción en x 20, y 252, 1120 × 16.
+
+## Textos fijos
+
+| Componente | Texto literal | Tamaño y color |
+|---|---|---|
+| Título | "Compras públicas de medicamentos en México" | 26 px, `#202124` |
+| Subtítulo | "Datos sintéticos generados para este proyecto, del 1 ene 2024 al 31 dic 2025 (fecha de corte). El tablero abre con 2025 y cada tarjeta compara el rango elegido con el periodo anterior de la misma duración (con el rango por defecto, del 2 ene al 31 dic 2024). Precio promedio: suma de IMPORTE entre suma de PIEZAS, ponderado por piezas." | 12 px, `#5F6368`, dos líneas |
+| Etiqueta del control de fechas | "Periodo" | 12 px, `#5F6368` |
+| Botón | "Restablecer filtros" | 12 px, `#0072B2` |
+| Etiqueta de comparación de las tarjetas | "frente al periodo anterior" | La de la tarjeta |
+
+El subtítulo cumple FR-009 y FR-026. Si cambia el rango por defecto, cambia también el subtítulo.
 
 La disposición es inicial (aclaración de la spec): un cambio se hace primero en
 `docs/dashboard.md` y después en el informe.
@@ -105,16 +121,16 @@ La disposición es inicial (aclaración de la spec): un cambio se hace primero e
 | Molécula | `MOLECULA` | Drop-down list | Todas | Sí | Sí | 200 (hay 139) |
 
 Relaciones: todos los controles usan la misma fuente, así que se filtran entre sí (cascada) y
-afectan a los 9 componentes de datos. No hay excepciones de alcance. Si la construcción descubre
+afectan a los 7 componentes de datos (3 tarjetas y 4 gráficos). No hay excepciones de alcance. Si la construcción descubre
 una, se indica junto al visual afectado (FR-010).
 
 ## Tarjetas
 
 | Tarjeta | Métrica | Unidad visible | Formato del valor | Comparación |
 |---|---|---|---|---|
-| Monto Total Comprado | Importe (`SUM(IMPORTE)`) | millones de pesos (MXN) | Compacto, 1 decimal | Previous year, cambio en %, 1 decimal |
-| Total de Piezas Adjudicadas | Piezas (`SUM(PIEZAS)`) | millones de piezas | Compacto, 2 decimales | Previous year, cambio en %, 1 decimal |
-| Precio Promedio General por Pieza | Precio Promedio | pesos (MXN) por pieza | Compacto, 2 decimales (por debajo de mil no cambia) | Previous year, cambio en %, 1 decimal |
+| Monto Total Comprado | Importe (`SUM(IMPORTE)`) | pesos (MXN) | Compacto, 1 decimal | Previous period, cambio en %, 1 decimal |
+| Total de Piezas Adjudicadas | Piezas (`SUM(PIEZAS)`) | piezas | Compacto, 2 decimales | Previous period, cambio en %, 1 decimal |
+| Precio Promedio General por Pieza | Precio Promedio | pesos (MXN) por pieza | Compacto, 2 decimales (por debajo de mil se ve igual, por encima pasa a "K") | Previous period, cambio en %, 1 decimal |
 
 Estado sin datos en el periodo de referencia: "Missing data" en "-" (R5).
 
@@ -123,16 +139,16 @@ Estado sin datos en el periodo de referencia: "Missing data" en "-" (R5).
 | Componente | Tipo | Dimensión | Métrica | Orden | Límite | Etiquetas | Color |
 |---|---|---|---|---|---|---|---|
 | Gasto por entidad | Bar chart horizontal | Entidad | Importe | Importe descendente | 32 barras, sin "Others" | Valor compacto | `#0072B2` |
-| Mapa de gasto por entidad | Geo chart, zoom México, con leyenda de escala | Entidad ISO | Importe | No aplica | 32 áreas | Tooltip | Escala `#DCEBF5` a `#0072B2` |
+| Mapa de gasto por entidad | Geo chart, zoom México, con leyenda de escala | Entidad ISO | Importe | No aplica | 32 áreas | Tooltip | Escala `#DCEBF5` a `#0072B2`, "Dataless" `#F1F3F4` |
 | Participación por institución | Bar chart horizontal | Institución | Importe, Percent of total | Descendente | 7 barras, sin "Others" | % con 1 decimal | `#0072B2` |
-| Top 10 molécula-fabricante | Table | Molécula, Fabricante | Piezas, Importe, Precio Promedio | Importe descendente, después Molécula | Top N 10, sin "Others" | Números a la derecha | Texto `#202124` |
+| Top 10 molécula-fabricante | Table | Molécula, Fabricante | Piezas (entero con separador de miles, sin compactar), Importe (compacto, 1 decimal), Precio Promedio (2 decimales, sin compactar) | Importe descendente, después Molécula y Fabricante | Top N 10, sin "Others" | Números a la derecha | Texto `#202124` |
 
 Títulos de componentes (descriptivos, aclaración de la spec):
 
-- "Gasto por entidad, millones de MXN";
-- "Gasto por entidad en el mapa, millones de MXN";
+- "Gasto por entidad, pesos (MXN)";
+- "Gasto por entidad en el mapa, pesos (MXN)";
 - "Participación por institución, % del importe";
-- "Top 10 pares molécula-fabricante por importe". Una molécula puede salir con varios fabricantes
+- "Top 10 pares molécula-fabricante por importe (MXN)". Una molécula puede salir con varios fabricantes
   (en 2025, 10 filas con 6 moléculas distintas), que es la definición de "Top 10 de moléculas" del
   principio VI.
 
@@ -140,7 +156,8 @@ Alternativas registradas, que solo se aplican si la prueba en el producto las ex
 
 | Riesgo | Alternativa |
 |---|---|
-| La tarjeta no dibuja ▲▼ | Campo calculado de texto con ▲ o ▼ por tarjeta, agrupado aparte del control de fechas y con la excepción "▲▼ compara 2025 con 2024" visible (R5) |
+| La tarjeta no dibuja ▲▼ | Campo calculado de texto con ▲ o ▼ por tarjeta sobre `FECHA`, fuera del grupo del control de fechas y con la excepción "▲▼ comparan siempre 2025 con el periodo anterior" visible (R5) |
+| Los números compactos usan "B" | Campos "Importe en millones" y "Piezas en millones" sin compactar, unidades en millones y enmienda PATCH de la constitución (R11) |
 | El gráfico de barras no admite "Percent of total" | Tabla de Institución con la columna en "Percent of total" de tipo "Bar" (R7) |
 | El botón no devuelve el rango de fechas | Botón *Navigation* que recarga el propio informe (R4) |
 | El valor de la tarjeta no admite 26 px | Ajustar los demás tamaños para mantener 3 (R10) |
@@ -150,7 +167,8 @@ Alternativas registradas, que solo se aplican si la prueba en el producto las ex
 | Atributo | Valor |
 |---|---|
 | Título | "Hallazgos clave (2025, sin otros filtros)" |
-| Contenido | Tres conclusiones cuantificadas del estado inicial (R17) |
+| Contenido | Tres conclusiones cuantificadas del estado inicial y una línea final que dice que reflejan patrones inyectados por el generador (R17) |
+| Longitud | Como máximo 5 líneas de 12 px con interlineado de 14 px, de unos 60 caracteres, bajo el título de 14 px |
 | Origen de cada cifra | Salida de `make bq-dashboard` con los filtros por defecto |
 | Advertencia | "Patrón inyectado por el generador" cuando corresponde (`docs/datos_sinteticos.md`) |
 
@@ -160,7 +178,7 @@ Alternativas registradas, que solo se aplican si la prueba en el producto las ex
 |---|---|---|
 | Inicial | Rango 2025-01-01 a 2025-12-31, sin otros filtros | KPIs, comparación, entidades, instituciones, top 10 y hallazgos |
 | Filtrado | Rango por defecto y una entidad elegida (por ejemplo, Jalisco) | KPIs, top 10 y gasto por entidad (FR-033) |
-| Ampliado | Rango 2024-01-01 a 2025-12-31 | Totales de toda la vista y comparación sin datos completos (caso límite) |
+| Ampliado | Rango 2024-01-01 a 2025-12-31 | Totales de toda la vista y comparación en "-", porque el periodo anterior (2022-2023) no tiene datos |
 | Vacío | Una combinación sin filas (por ejemplo, SEMAR en una entidad donde no opera) | Estado vacío legible |
 
 ## Consultas de verificación
@@ -198,10 +216,15 @@ la vista, y son las que se comparan con el tablero.
 
 | Cifra | 2025 | 2024 | Cambio |
 |---|---|---|---|
-| Importe | 14 941.7 M | 13 692.2 M | +9.1 % |
-| Piezas | 28.55 M | 26.71 M | +6.9 % |
-| Precio promedio | 523.42 | 512.71 | +2.1 % |
-| Filas | 153 682 | 144 818 | No aplica |
+Las tarjetas comparan 2025 con su periodo anterior, del 2 de enero al 31 de diciembre de 2024
+(365 días, R5). La consulta por año da además 2024 completo.
+
+| Cifra | 2025 | Periodo anterior (2024-01-02 a 2024-12-31) | Cambio | 2024 completo |
+|---|---|---|---|---|
+| Importe | 14 941.7 M | 13 628.0 M | +9.6 % | 13 692.2 M |
+| Piezas | 28.55 M | 26.59 M | +7.3 % | 26.71 M |
+| Precio promedio | 523.42 | 512.44 | +2.1 % | 512.71 |
+| Filas | 153 682 | 144 173 | No aplica | 144 818 |
 
 | Cifra de 2025 | Valor |
 |---|---|

@@ -21,9 +21,12 @@
   unidad) y un recuadro de "Hallazgos clave" que dice a qué estado de filtros corresponde cada
   conclusión, para que nada quede falso al filtrar.
 - Q: ¿Con qué rango abre el tablero y con qué periodo se comparan las tarjetas? → A: Abre con 2025
-  completo y compara con el mismo periodo del año anterior (2024). Es la única opción en la que el
-  periodo de referencia tiene datos. Para ver 2024-2025 el analista amplía el rango, y entonces la
-  comparación queda sin datos y se ve como indica la especificación del dashboard.
+  completo. En la primera sesión se eligió comparar con el mismo periodo del año anterior, y la
+  segunda ronda de análisis (2026-10-08) lo cambió por el periodo anterior de la misma duración
+  (*Previous period*): con 2024-2025, *Previous year* compararía dos años con uno y mostraría un
+  cambio inventado del 109 %, mientras que el periodo anterior (2022-2023) no tiene datos y la
+  tarjeta muestra "-". Data Studio cuenta el periodo anterior en días, así que 2025 (365 días) se
+  compara con el 2 de enero al 31 de diciembre de 2024.
 - Q: ¿La disposición de la página con el mapa es definitiva? → A: Es la disposición inicial. Se
   puede cambiar después de verla construida, actualizando primero la especificación del dashboard.
 
@@ -66,7 +69,8 @@ valores coinciden con la consulta de totales sobre la vista para el mismo rango 
    `SUM(IMPORTE)`, Total de Piezas Adjudicadas es igual a `SUM(PIEZAS)` y Precio Promedio General
    por Pieza es igual a `SUM(IMPORTE) / SUM(PIEZAS)`, con la precisión que muestra la tarjeta.
 3. **Given** el rango de fechas por defecto, **When** se lee la comparación de cada tarjeta,
-   **Then** el periodo de referencia tiene datos, el cambio coincide con la consulta por año y su
+   **Then** el periodo de referencia tiene datos, el cambio coincide con la consulta del periodo
+   anterior y su
    dirección se distingue por el símbolo ▲ o ▼ aunque se vea en escala de grises.
 4. **Given** la página principal, **When** se mide el lienzo, **Then** es 16:9, todo el contenido
    cabe sin scroll y el subtítulo dice que los datos son sintéticos, el periodo cubierto, la fecha
@@ -118,7 +122,7 @@ restablecer devuelve el estado inicial.
 
 Debajo de las tarjetas, el analista ve el gasto por entidad en barras horizontales ordenadas de
 mayor a menor con la etiqueta del importe en cada barra, la participación por institución en barras
-horizontales ordenadas con la etiqueta del porcentaje y la tabla "Top 10 molécula-fabricante" con
+horizontales ordenadas con la etiqueta del porcentaje y la tabla "Top 10 pares molécula-fabricante por importe (MXN)" con
 Molécula, Fabricante, Piezas, Importe y Precio Promedio, ordenada por Importe. Así puede responder en
 qué estados conviene concentrar la fuerza de ventas, qué institución pesa más en la demanda y qué
 fabricantes lideran cada molécula y a qué precio.
@@ -259,8 +263,8 @@ a las cifras de verificación sin pasos no escritos.
 
 - Rango de fechas sin datos (por ejemplo, 2023): las tarjetas muestran un estado vacío o un guion y
   no un cero que parezca una cifra real. La especificación dice cómo se ve.
-- Rango elegido por el analista cuyo periodo de referencia no tiene datos (por ejemplo, 2024 contra
-  2023, o 2024-2025 contra 2023-2024, que solo tiene datos en 2024): la tarjeta no puede mostrar un cambio inventado. La especificación documenta qué muestra la
+- Rango elegido por el analista cuyo periodo de referencia no tiene datos (por ejemplo, 2024, cuyo
+  periodo anterior es 2023, o 2024-2025, cuyo periodo anterior es 2022-2023): la tarjeta no puede mostrar un cambio inventado. La especificación documenta qué muestra la
   comparación en ese caso.
 - Combinación de filtros sin filas (por ejemplo, SEMAR en una entidad donde no opera): los visuales
   muestran un estado vacío legible, no un error.
@@ -330,11 +334,11 @@ a las cifras de verificación sin pasos no escritos.
   valores existentes. Por la misma razón, el gráfico de entidades y el de instituciones MUST NOT
   agrupar categorías en "Others".
 - **FR-009**: El rango de fechas por defecto MUST ser el rango fijo 2025-01-01 a 2025-12-31, y las
-  tarjetas MUST compararse con el mismo periodo del año anterior (2024-01-01 a 2024-12-31). MUST NOT
-  usar "Auto": con BigQuery, "Auto" muestra todo el rango del dataset (2024-01-01 a 2025-12-31), que
-  no es el periodo por defecto elegido y cuyo año anterior solo tiene datos en parte, de modo que la
-  comparación mezclaría dos años con uno. El subtítulo MUST decir que el tablero abre con 2025
-  frente a 2024 y que el rango se puede ampliar.
+  tarjetas MUST compararse con el periodo anterior de la misma duración (*Previous period*: con el
+  rango por defecto, 2024-01-02 a 2024-12-31). MUST NOT usar "Auto": con BigQuery, "Auto" muestra
+  todo el rango del dataset (2024-01-01 a 2025-12-31), que no es el periodo por defecto elegido. El
+  subtítulo MUST decir que el tablero abre con 2025, con qué periodo compara cada tarjeta y que el
+  rango se puede ampliar.
 - **FR-010**: Cada control MUST afectar a todas las tarjetas, gráficos y tablas. Cualquier
   excepción MUST indicarse con un texto visible junto al visual afectado y en la especificación.
 - **FR-011**: MUST existir un botón visible que restablezca todos los controles y filtros a su estado
@@ -370,7 +374,8 @@ a las cifras de verificación sin pasos no escritos.
   porcentaje de `SUM(IMPORTE)` por `INSTITUCION` sobre el total filtrado, ordenado de mayor a menor y
   con la etiqueta del porcentaje en cada barra. Como hay 7 instituciones, MUST NOT usarse un pie ni
   un donut.
-- **FR-019**: Top 10: MUST ser una tabla con las columnas Molécula, Fabricante (`FABRICANTE_COMPRA`),
+- **FR-019**: Top 10: MUST ser una tabla, titulada "Top 10 pares molécula-fabricante por importe
+  (MXN)", con las columnas Molécula, Fabricante (`FABRICANTE_COMPRA`),
   Piezas, Importe y Precio Promedio, con exactamente 10 filas de pares molécula-fabricante ordenadas
   por Importe de mayor a menor, con un orden secundario documentado para los empates, números
   alineados a la derecha con formato consistente y un título que diga el grano molécula-fabricante.

@@ -105,8 +105,8 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   - "Show top #" agrupa lo que excede el límite en "All others" (ayuda de Data Studio,
     `support.google.com/looker-studio/answer/11335992`), lo que ocultaría valores (FR-008);
   - con BigQuery, "Auto" muestra todo el rango del dataset y no los últimos 28 días
-    (`/looker/docs/studio/set-report-date-ranges`). La aclaración de la spec fija 2025 frente a 2024
-    y la constitución v1.4.1 prohíbe "Auto";
+    (`/looker/docs/studio/set-report-date-ranges`). La aclaración de la spec fija 2025 como rango por
+    defecto, y la constitución prohíbe "Auto" (la v1.4.1 corrigió la razón);
   - por defecto, un control afecta a todos los gráficos de su página, y agrupar componentes limita
     ese alcance (`apply-controls-to-specific-charts`). No se agrupa nada.
 - **Alternatives considered**:
@@ -139,38 +139,54 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 - **Decision**:
   - tres tarjetas (*Scorecard*) con la métrica, "Compact numbers" y la precisión de la
     especificación;
-  - la unidad va en el nombre visible de la tarjeta o en un texto debajo ("millones de pesos
-    (MXN)", "millones de piezas", "pesos (MXN) por pieza");
-  - *Comparison type*: Period; *Comparison date range*: Previous year; cambio en porcentaje;
+  - la unidad va en el nombre visible de la tarjeta o en un texto debajo: "pesos (MXN)", "piezas" y
+    "pesos (MXN) por pieza". La escala la pone el sufijo compacto (R11), así que la unidad no dice
+    "millones";
+  - *Comparison type*: Period; *Comparison date range*: Previous period; cambio en porcentaje con
+    la etiqueta "frente al periodo anterior";
   - colores de cambio: positivo `#0072B2` y negativo `#B34700` (R10), ambos con contraste de texto
     sobre blanco.
 - **Rationale**:
   - opciones de la tarjeta: compact numbers, decimales, tipo de comparación, "Show absolute change",
     colores de cambio positivo y negativo, "Missing data" (`scorecard-reference`);
   - presets de comparación Previous period, Previous year, Fixed y Advanced
-    (`/looker/docs/studio/set-report-date-ranges`). Previous year compara el primer trimestre de
-    2025 con el de 2024, con la misma estacionalidad, mientras que Previous period lo compararía con
-    el último trimestre de 2024.
+    (`/looker/docs/studio/set-report-date-ranges`). Previous period es el mismo número de días
+    inmediatamente antes del rango: en el ejemplo oficial, del 25 al 31 de diciembre de 2018 se
+    compara con el 18 al 24 de diciembre;
+  - con Previous year, el rango 2024-01-01 a 2025-12-31 se compararía con 2023-01-01 a 2024-12-31,
+    que solo tiene datos de 2024, y la tarjeta mostraría un cambio del 109.1 % que no existe. Con
+    Previous period se compara con 2022-2023, que no tiene datos, y la tarjeta muestra "-" (segunda
+    ronda de análisis, decisión del dueño del 2026-10-08);
+  - con el rango por defecto, 2025 (365 días) se compara con el 2 de enero al 31 de diciembre de
+    2024. Queda fuera el 1 de enero de 2024, con 64.2 M de importe. El subtítulo lo dice, y
+    `make bq-dashboard` calcula el mismo periodo para que las cifras coincidan;
+  - la contrapartida: un trimestre se compara con el trimestre anterior y no con el mismo trimestre
+    de 2024, que tendría la misma estacionalidad. La etiqueta "frente al periodo anterior" lo deja
+    claro.
 - **Riesgo**: la documentación describe el cambio solo con color y no menciona flechas
   (`scorecard-reference`). Se verifica al construir. Los colores de cambio están separados para la
   visión con daltonismo (`#0072B2` frente a `#B34700`, ΔE 22.5 en protanopia según
   `validate_palette.js`, R10), pero tienen una claridad parecida (5.19:1 y 5.50:1 sobre blanco), así
   que en escala de grises no se distinguen. Si la tarjeta no dibuja ▲▼, la alternativa (decisión del
   dueño en el análisis del 2026-10-08) es:
-  - un campo calculado de texto por tarjeta en la fuente, por ejemplo para el importe
-    `CASE WHEN SUM(IF(ANIO = 2025, IMPORTE, 0)) >= SUM(IF(ANIO = 2024, IMPORTE, 0)) THEN "▲" ELSE "▼" END`,
-    mostrado en una tarjeta de texto pequeña junto al cambio;
-  - como ese campo compara años fijos, su componente se agrupa aparte del control de fechas (las
-    listas desplegables lo siguen filtrando) y el tablero dice junto a él "▲▼ compara 2025 con 2024"
-    como excepción visible (FR-010);
+  - un campo calculado de texto por tarjeta en la fuente que compara los dos periodos del rango por
+    defecto sobre `FECHA` (no sobre `ANIO`, que tiene tipo Year), por ejemplo para el importe
+    `CASE WHEN SUM(IF(FECHA >= DATE(2025, 1, 1), IMPORTE, 0)) >= SUM(IF(FECHA >= DATE(2024, 1, 2) AND FECHA <= DATE(2024, 12, 31), IMPORTE, 0)) THEN "▲" ELSE "▼" END`,
+    mostrado en una tarjeta pequeña de 60 × 30 px dentro de la esquina inferior derecha de su
+    tarjeta (x de la tarjeta + 290, y 220);
+  - como ese campo compara periodos fijos, el control de fechas se agrupa (Arrange, Group) con los
+    7 componentes de datos y las tres flechas quedan fuera del grupo, de modo que las listas
+    desplegables las siguen filtrando y el rango de fechas no. Un texto de 12 px bajo las tarjetas
+    dice "▲▼ comparan siempre 2025 con el periodo anterior" como excepción visible (FR-010). Esto
+    sustituye, solo en este caso, la regla de R3 de no agrupar controles;
+  - fuera del rango por defecto la flecha puede no coincidir con el % de la tarjeta, y la excepción
+    visible lo advierte;
   - si Data Studio no admite agregados dentro del `CASE`, se para y se consulta al dueño antes de
     otra alternativa.
-- **Previous year**: los ejemplos oficiales muestran las mismas fechas de calendario un año antes
-  (del 26 de diciembre de 2018 al 1 de enero de 2019 se compara con el 26 de diciembre de 2017 al
-  1 de enero de 2018), no 365 días (`/looker/docs/studio/set-report-date-ranges`). Es el mismo
-  periodo de referencia que calcula `make bq-dashboard`.
 - **Por verificar al construir**: qué muestra la comparación cuando el periodo de referencia no tiene
-  datos (se configura "Missing data" en "-" si aplica) y cómo trata el 29 de febrero.
+  datos (se configura "Missing data" en "-" si aplica) y que el periodo anterior de 2025 es
+  exactamente 2024-01-02 a 2024-12-31 (se ve al pasar el cursor sobre la comparación o con una tabla
+  de prueba).
 
 ## R6. Gasto por entidad: barras horizontales
 
@@ -224,7 +240,7 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 
 - **Decision**: *Geo chart* con dimensión `ENTIDAD_ISO` (Country subdivision, 1st level), zoom en
   México, métrica Importe, escala de un solo tono (mínimo `#DCEBF5`, máximo `#0072B2`), color
-  "Dataless" gris claro, leyenda de escala visible y cross-filtering activo. La leyenda y la escala
+  "Dataless" `#F1F3F4`, leyenda de escala visible y cross-filtering activo. La leyenda y la escala
   continua cumplen el principio VI desde la v1.4.3: en un mapa no caben etiquetas directas en cada
   entidad, la escala codifica el importe y no decora, y el valor exacto está en el tooltip y en las
   barras de entidades (decisión del dueño del 2026-10-08).
@@ -280,8 +296,8 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   - el lienzo admite tamaños de hasta 2000 × 10 000 px y el preset "Screen (16:9)"
     (`report-and-page-layout`);
   - `#0072B2` es el azul de Okabe-Ito y el único color de esa paleta, junto con el negro, que llega a
-    4.5:1 sobre blanco (R13). El naranja de Okabe-Ito (`#D55E00`, 3.87:1) no llega a 4.5:1 para
-    texto, por eso el acento es un naranja más oscuro;
+    4.5:1 sobre blanco (R13). El bermellón de Okabe-Ito (`#D55E00`, 3.87:1) no llega a 4.5:1
+    para texto, por eso el acento es un naranja más oscuro;
   - la validación de paleta del skill de visualización (`validate_palette.js`) pasa los cinco
     chequeos para `#0072B2` y `#B34700`, con separación CVD ΔE 22.5 (protanopia).
 - **Por verificar al construir**:
@@ -296,14 +312,24 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 
 ## R11. Formato de números y unidades
 
-- **Decision**: números compactos en las tarjetas y en las etiquetas de las barras, separador de
-  miles "," y punto decimal ".", como se usa en México. Los importes se leen en millones de pesos
-  ("M").
+- **Decision** (segunda ronda de análisis, decisión del dueño del 2026-10-08): números compactos
+  en las tarjetas y en las etiquetas de las barras, como pide el principio VI, con unidades que no
+  repiten la escala: "pesos (MXN)", "piezas" y "pesos (MXN) por pieza". El sufijo compacto ("K",
+  "M" o el que use Data Studio en español) pone la escala. Separador de miles "," y punto decimal
+  ".", como se usa en México.
 - **Riesgo**: la documentación no dice qué sufijos usan los números compactos según el idioma. En
-  inglés, mil millones es "B", que en español se confunde con "billón" (10^12). Se verifica al
-  construir. Si aparece "B", la alternativa es un campo calculado en la fuente, "Importe en millones"
-  = `SUM(IMPORTE) / 1000000` con tipo Number, usado en las etiquetas, y la unidad "millones de
-  pesos" en los títulos.
+  inglés, mil millones es "B" (14 941.7 M se vería "14.9B"), que en español se confunde con
+  "billón" (10^12). Se verifica en la tarea de las tarjetas. Si aparece "B", se para y se aplica la
+  alternativa:
+  - campos calculados en la fuente "Importe en millones" = `SUM(IMPORTE) / 1000000` y "Piezas en
+    millones" = `SUM(PIEZAS) / 1000000`, con tipo Number y sin formato compacto;
+  - unidades "millones de pesos (MXN)" y "millones de piezas" en las tarjetas y en los títulos;
+  - una enmienda PATCH de la constitución que admita como "número compacto" una cifra corta con la
+    escala escrita en la unidad, porque sin formato compacto la regla "números compactos (K, M)"
+    quedaría incumplida.
+- **Cifras esperadas**: las de [data-model.md](data-model.md#cifras-esperadas-del-estado-inicial)
+  están en millones, que es como las imprime `make bq-dashboard`. El tablero las muestra con su
+  sufijo compacto y la comparación se hace a la precisión que muestra.
 
 ## R12. Consultas de verificación y `make bq-dashboard`
 
@@ -318,7 +344,8 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   - un subcomando `python -m warehouse dashboard` y un objetivo `make bq-dashboard`, con variables
     opcionales `DESDE`, `HASTA`, `ENTIDAD`, `INSTITUCION`, `GRUPO_INSTITUCIONAL`,
     `GRUPO_TERAPEUTICO` y `MOLECULA` (listas separadas por comas);
-  - el programa calcula el periodo de referencia (las mismas fechas un año antes), ejecuta `kpis.sql`
+  - el programa calcula el periodo de referencia igual que *Previous period* de Data Studio (los
+    mismos días inmediatamente antes, R5), ejecuta `kpis.sql`
     dos veces y las demás una vez, cada una con dry run previo, labels y el límite de
     `.bigqueryrc`, imprime las cifras con el formato del tablero y comprueba cuatro cifras cruzadas
     (D1 a D4, [contracts/verificacion-sql.md](contracts/verificacion-sql.md)).
@@ -368,7 +395,7 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 - **Decision**:
   - Claude construye el informe en el Chrome del dueño con Claude in Chrome, sobre su sesión de
     Google, siguiendo [contracts/especificacion-dashboard.md](contracts/especificacion-dashboard.md)
-    y el orden de [quickstart.md](quickstart.md), con una captura después de cada componente;
+    y el orden de [tasks.md](tasks.md), con una captura después de cada componente;
   - Claude pide confirmación antes de: crear la fuente con sus credenciales, aceptar términos o
     avisos de Data Studio, compartir el informe y cambiar permisos;
   - la comprobación sin sesión la hace Claude en el navegador integrado de la app, que no comparte
@@ -409,12 +436,20 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 
 ## R17. Contenido del recuadro de hallazgos
 
-- **Decision**: tres conclusiones del estado inicial (2025, sin otros filtros), tomadas de la salida
-  de `make bq-dashboard`, cada una con su cifra y, si refleja un patrón del generador, con esa
-  advertencia. El borrador de la maqueta: el IMSS concentra el 38.7 % del importe (patrón inyectado);
-  la insulina glargina es la molécula con más importe (17.4 %) y su primer fabricante cobra unos
-  1 413 pesos por pieza frente a 694 del segundo; el estado de México lidera las entidades con el
-  11.6 %.
+- **Decision**: tres conclusiones del estado inicial (2025, sin otros filtros). Cada cifra sale de
+  la salida de `make bq-dashboard` (institución, entidad y top 10), y cada conclusión que refleja un
+  patrón del generador lo dice (`docs/datos_sinteticos.md`: concentración por institución, por
+  entidad y por molécula, y P5). Las tres lo reflejan, así que el recuadro termina con una línea
+  que lo advierte. El borrador:
+  - "El IMSS compra el 38.7 % del importe.";
+  - "Insulina glargina: Serrato Castro la vende a 1 413 pesos por pieza y Tamayo a 694." (filas 1 y
+    6 del top 10);
+  - "El estado de México lidera las entidades con el 11.6 %.";
+  - "Las tres reflejan patrones que el generador inyecta a propósito.".
+- **Longitud**: el recuadro mide 420 × 100 px. Con el título en 14 px y el texto en 12 px con
+  interlineado de 14 px caben unas 5 líneas de 12 px de unos 60 caracteres. El texto literal se fija
+  en `docs/dashboard.md` con esa medida y se comprueba en la captura. Si no cabe, se acorta el texto
+  y no se reduce la letra.
 - **Rationale**: aclaración de la spec (títulos descriptivos más recuadro) y principio VII (cifras
   que coinciden con el SQL). Los dos hallazgos del documento de entrega son de la feature 006 y
   pueden reutilizar estos.

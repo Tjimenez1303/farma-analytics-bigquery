@@ -18,7 +18,8 @@ demuestran que sus cifras coinciden con el SQL. El enfoque:
   2026-10-08 ([data-model.md](data-model.md#rejilla-y-disposición)):
   - cabecera con título, subtítulo de transparencia, cinco listas desplegables en cascada, el rango
     de fechas fijo en 2025 y el botón "Restablecer filtros" (R3, R4);
-  - tres tarjetas comparadas con el mismo periodo de 2024 y el recuadro "Hallazgos clave" (R5, R17);
+  - tres tarjetas comparadas con el periodo anterior de la misma duración (con el rango por
+    defecto, 2024-01-02 a 2024-12-31) y el recuadro "Hallazgos clave" (R5, R17);
   - barras de las 32 entidades a toda la altura, Geo chart de México, barras de las 7 instituciones
     con su porcentaje y tabla del top 10 molécula-fabricante (R6 a R9);
   - tema propio con un color de datos (`#0072B2`), un acento (`#B34700`), Roboto en tres tamaños y
@@ -80,7 +81,7 @@ macOS del dueño para `make bq-dashboard`. Linux (`ubuntu-latest`) para las prue
 - las consultas que lanza Data Studio no pasan por `.bigqueryrc` y las limita la cuota diaria de
   100 GiB del proyecto (R16);
 - una sola página 16:9 sin scroll, con como máximo 50 gráficos por página (límite de Data Studio,
-  aquí se usan 9 componentes de datos);
+  aquí se usan 7 componentes de datos);
 - comentarios SQL en inglés y documentación para lectores en español con el principio IX;
 - nada versionado menciona el documento de requisitos ni el ID del proyecto.
 
