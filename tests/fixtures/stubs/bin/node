@@ -1,0 +1,4 @@
+#!/bin/bash
+# Fake node for tests.
+echo "node $*" >> "${STUB_LOG:-/dev/null}"
+echo "v${STUB_NODE_VERSION:-22.18.0}"

@@ -1,0 +1,4 @@
+#!/bin/bash
+# Fake rg for tests.
+echo "rg $*" >> "${STUB_LOG:-/dev/null}"
+echo "ripgrep ${STUB_RG_VERSION:-14.1.1}"

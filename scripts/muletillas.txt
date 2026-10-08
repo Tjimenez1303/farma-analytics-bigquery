@@ -1,0 +1,93 @@
+# Filler words and phrases flagged by scripts/lint_prosa.sh (constitution, principle IX).
+# One entry per line, case-insensitive, matched as whole words.
+# Lines starting with "re:" are regular expressions (ripgrep syntax).
+
+# Fórmulas de relleno
+cabe destacar
+cabe señalar
+es importante señalar
+es fundamental tener en cuenta
+vale la pena mencionar
+sin lugar a dudas
+
+# Aperturas genéricas
+en el mundo actual
+en el panorama actual
+en la era digital
+en un entorno cada vez más
+en el dinámico mundo de
+
+# Verbos de moda y calcos del inglés
+re:\badentr\w+
+re:\bsumerg(irse|irnos|imos|e|en|ió|iendo)\b
+re:\bprofundiz\w*\s+en\b
+re:\bexplorar(emos|é|á)\b
+en este documento exploramos
+re:\bpotenci(ar|amos|an|ó|ando|ado|ará|arán)\b
+desbloquear el potencial
+re:\bnaveg(ar|amos|a|an|ando)\s+por\b
+re:\bsubray(ar|a|an|amos|ó|ando|ado)\b
+re:\bresalt(ar|a|an|amos|ó|ando|ado)\b
+re:\baprovech(ar|a|an|amos|ó|ando|ado|ará)\b
+re:\bfoment(ar|a|an|amos|ó|ando|ado)\b
+
+# Cuantificadores vagos
+un amplio abanico
+una amplia gama
+un sinfín de
+
+# Adjetivos inflados
+re:\brobust[oa]s?\b
+re:\bholístic[oa]s?\b
+re:\bintegral(es)?\b
+re:\btransformador(a|es|as)?\b
+re:\binnovador(a|es|as)?\b
+de vanguardia
+re:\bmeticulos[oa]s?\b
+re:\bintrincad[oa]s?\b
+re:\binvaluables?\b
+sin precedentes
+en constante evolución
+re:\bmultifacétic[oa]s?\b
+
+# Sustantivos de moda
+re:\bsinergias?\b
+re:\btapiz\b
+re:\bpanorama\b
+re:\bpaisaje\b
+testimonio de
+
+# Calcos y rodeos
+re:\b(juega|juegan|jugó|desempeña|desempeñan|desempeñó)\s+un\s+papel\b
+a nivel de
+sirve como
+se erige como
+re:\bconstituy(e|en|ó)\b
+re:\butiliz(ar|a|an|amos|ó|ando|ado|ada|ados|adas)\b
+re:\bllev(ar|a|an|amos|ó|ando|ado)\s+a\s+cabo\b
+re:\brealiz(ar|a|an|amos|ó)\s+un\s+análisis\b
+
+# Cierres mecánicos
+en resumen
+en conclusión
+en definitiva
+en este sentido
+
+# Estructuras retóricas
+no solo
+sino también
+marca un hito
+sienta las bases
+los expertos coinciden
+diversos estudios
+
+# Tono de chat y descargos
+excelente pregunta
+aquí tienes
+espero que te sea útil
+si quieres, puedo
+según mi última actualización
+
+# Tono publicitario
+al siguiente nivel
+información valiosa para la toma de decisiones

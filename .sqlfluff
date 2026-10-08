@@ -1,0 +1,45 @@
+# SQL style rules (constitution, principle II).
+[sqlfluff]
+dialect = bigquery
+templater = raw
+max_line_length = 100
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+# Column aliases in UPPER_SNAKE_CASE. Table aliases (snake_case) are reviewed by hand.
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = upper
+unquoted_identifiers_policy = column_aliases
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = upper
+
+[sqlfluff:rules:aliasing.table]
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+aliasing = explicit
+
+# No single-letter aliases.
+[sqlfluff:rules:aliasing.length]
+min_alias_length = 3
+
+[sqlfluff:rules:ambiguous.join]
+fully_qualify_join_types = inner
+
+[sqlfluff:rules:ambiguous.column_references]
+group_by_and_order_by_style = explicit
+
+[sqlfluff:rules:convention.select_trailing_comma]
+select_clause_trailing_comma = forbid
+
+# AND / OR at the start of the line.
+[sqlfluff:layout:type:binary_operator]
+line_position = leading

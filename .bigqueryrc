@@ -1,0 +1,8 @@
+--location=US
+
+[query]
+--use_legacy_sql=false
+--maximum_bytes_billed=1073741824
+
+[mk]
+--use_legacy_sql=false

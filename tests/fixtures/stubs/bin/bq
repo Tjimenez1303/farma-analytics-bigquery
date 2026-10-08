@@ -1,0 +1,36 @@
+#!/bin/bash
+# Fake bq driven by STUB_* environment variables.
+echo "bq $*" >> "${STUB_LOG:-/dev/null}"
+# STUB_ERRORS_ON_STDOUT=1 mimics bq printing errors on stdout with --format=json.
+if [ "${STUB_ERRORS_ON_STDOUT:-}" = "1" ]; then exec 2>&1; fi
+args=" $* "
+case "$args" in
+  *" version "*)
+    echo "This is BigQuery CLI ${STUB_BQ_VERSION:-2.1.20}"
+    ;;
+  *" query "*"--use_legacy_sql=true"*)
+    if [ "${STUB_LEGACY:-rejected}" = "rejected" ]; then
+      echo "Error in query string: Legacy SQL is not allowed in this project." >&2
+      exit 1
+    fi
+    printf '{"jobReference": {"location": "%s"}}\n' "${STUB_DRYRUN_LOCATION:-US}"
+    ;;
+  *" query "*)
+    case "${STUB_DRYRUN:-ok}" in
+      disabled) echo "BigQuery error: BigQuery API has not been used in project before or it is disabled. SERVICE_DISABLED" >&2; exit 1 ;;
+      denied) echo "BigQuery error: Access Denied: User does not have bigquery.jobs.create permission." >&2; exit 1 ;;
+      *) printf '{"jobReference": {"location": "%s"}, "statistics": {"totalBytesProcessed": "0"}}\n' "${STUB_DRYRUN_LOCATION:-US}" ;;
+    esac
+    ;;
+  *" show "*)
+    if [ -z "${STUB_DATASET_LOCATION:-}" ]; then
+      echo "BigQuery error in show operation: Not found: Dataset farma_analytics" >&2
+      exit 2
+    fi
+    printf '{"location": "%s"}\n' "$STUB_DATASET_LOCATION"
+    ;;
+  *)
+    echo "stub bq: unhandled: $*" >&2
+    exit 64
+    ;;
+esac

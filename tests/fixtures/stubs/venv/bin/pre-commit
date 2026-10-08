@@ -1,0 +1,4 @@
+#!/bin/bash
+# Fake pre-commit for tests.
+echo "pre-commit $*" >> "${STUB_LOG:-/dev/null}"
+echo "pre-commit ${STUB_PRECOMMIT_VERSION:-4.6.2}"

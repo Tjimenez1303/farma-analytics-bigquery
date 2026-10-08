@@ -4,3 +4,22 @@
 
 # Spec Kit
 # .specify/ is versioned; machine-local state is ignored by .specify/.gitignore
+
+# Local config and credentials
+.env
+.env.*
+!.env.example
+.df-credentials.json
+application_default_credentials.json
+*service-account*.json
+*-key.json
+*.p12
+
+# Local environments and dependencies
+.venv/
+node_modules/
+.pytest_cache/
+__pycache__/
+
+# OS files
+.DS_Store

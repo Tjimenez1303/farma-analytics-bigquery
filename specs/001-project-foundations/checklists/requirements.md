@@ -39,7 +39,7 @@
   usuarios son las personas que trabajan con el repositorio. Los nombres de herramienta y de archivo
   (`.bigqueryrc`, `BIGQUERYRC`, `make doctor`, SQLFluff, pre-commit, ripgrep,
   `scripts/lint_prosa.sh`, `scripts/muletillas.txt`, `.env.example`, ADC) los impone la
-  constitución v1.2.0 (principios II, VIII y IX y tabla de stack) y el propio enunciado. Son
+  constitución v1.2.1 (principios II, VIII y IX y tabla de stack) y el propio enunciado. Son
   restricciones del QUÉ, no decisiones de diseño. La spec deja al plan el CÓMO: valores concretos
   de los controles de costo, forma de verificar el dialecto con dry runs, reglas exactas de
   SQLFluff, estructura del catálogo de prerrequisitos y patrones del lint de prosa.

@@ -1,0 +1,4 @@
+#!/bin/bash
+# Fake uv for tests.
+echo "uv $*" >> "${STUB_LOG:-/dev/null}"
+echo "uv ${STUB_UV_VERSION:-0.12.9}"

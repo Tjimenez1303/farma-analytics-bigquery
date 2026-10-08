@@ -1,0 +1,7 @@
+#!/bin/bash
+# Fake project interpreter: fakes --version and delegates everything else.
+if [ "${1:-}" = "--version" ]; then
+  echo "Python ${STUB_PYTHON_VERSION:-3.12.14}"
+  exit 0
+fi
+exec "${REAL_PYTHON:-python3}" "$@"
