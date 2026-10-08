@@ -15,7 +15,7 @@ brew install --cask google-cloud-sdk
 ```
 
 ```bash
-brew install uv node@22 ripgrep
+brew install uv ripgrep
 ```
 
 ```bash
@@ -33,8 +33,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```bash
 sudo apt install make ripgrep
 ```
-
-Node.js 22 se descarga desde [nodejs.org](https://nodejs.org).
 
 ## Arranque rápido
 
@@ -80,7 +78,7 @@ Estos pasos crean un proyecto de GCP nuevo para este repositorio y dejan el ento
    gcloud services enable bigquery.googleapis.com billingbudgets.googleapis.com cloudquotas.googleapis.com cloudbilling.googleapis.com --project=<PROJECT_ID>
    ```
 
-5. Crea las credenciales por defecto de la aplicación (ADC), que son las que usan Python y Dataform, y asígnales el proyecto para el control de cuota.
+5. Crea las credenciales por defecto de la aplicación (ADC), que son las que usan las bibliotecas de Google Cloud, y asígnales el proyecto para el control de cuota.
 
    ```bash
    gcloud auth application-default login
@@ -96,7 +94,7 @@ Estos pasos crean un proyecto de GCP nuevo para este repositorio y dejan el ento
    cp .env.example .env
    ```
 
-7. Instala el entorno de desarrollo: Python, las herramientas de calidad y Dataform CLI.
+7. Instala el entorno de desarrollo, que incluye Python y las herramientas de calidad.
 
    ```bash
    make setup-dev
@@ -122,8 +120,6 @@ Diagnóstico de farma-analytics-bigquery
 OK       T01  gcloud                          540.0.0 (mínimo 500.0.0)
 OK       T02  bq                              2.1.20 (mínimo 2.1.0)
 OK       T03  Python del proyecto             3.12.14
-OK       T04  Node.js                         22.18.0 (mínimo 22.0.0)
-OK       T05  Dataform CLI                    3.0.70
 OK       T06  SQLFluff                        4.3.0
 OK       T07  pre-commit                      4.6.2
 OK       T08  ripgrep                         14.1.1 (mínimo 14.0.0)
@@ -145,7 +141,7 @@ OMITIDO  B03  Location de farma_analytics     el dataset aún no existe
               remedio: sin acción
 OK       B04  Límite de bytes                 1.00 GiB por consulta
 
-Resumen: 23 OK, 0 AVISO, 0 FALLO, 1 OMITIDO
+Resumen: 21 OK, 0 AVISO, 0 FALLO, 1 OMITIDO
 ```
 
 Cuando un chequeo falla, la línea `remedio:` indica el comando o el paso que lo corrige. `make help` lista todos los objetivos disponibles.
@@ -273,7 +269,7 @@ El precio promedio por molécula mezcla presentaciones con envases de distinto t
 
 El repositorio limita el gasto en tres capas, porque ninguna cubre todos los casos por sí sola.
 
-El archivo [`.bigqueryrc`](.bigqueryrc) fija un límite de 1 GiB facturado por consulta. Si la estimación de una consulta lo supera, BigQuery la rechaza antes de ejecutarla y no cobra nada. Este límite solo protege las consultas que lanza `bq` desde el `Makefile`, ya que la consola de BigQuery, las bibliotecas de Python y Dataform no leen ese archivo. Cambiarlo es editar una línea y pasa por un PR como cualquier otro cambio.
+El archivo [`.bigqueryrc`](.bigqueryrc) fija un límite de 1 GiB facturado por consulta. Si la estimación de una consulta lo supera, BigQuery la rechaza antes de ejecutarla y no cobra nada. Este límite solo protege las consultas que lanza `bq` desde el `Makefile`, ya que la consola de BigQuery y las bibliotecas de Python no leen ese archivo. Cambiarlo es editar una línea y pasa por un PR como cualquier otro cambio.
 
 La cuota diaria de consultas del proyecto (`make gcp-quota`) cubre todo lo demás. Su valor está en `.env` como `QUERY_QUOTA_GIB_PER_DAY`, con 100 GiB por día en el ejemplo. Es un tope duro: al alcanzarlo, BigQuery devuelve el error `usageQuotaExceeded` a todas las consultas del proyecto hasta la medianoche del horario del Pacífico. Para ajustarla necesitas el rol Quota Administrator (`roles/servicemanagement.quotaAdmin`).
 
@@ -295,7 +291,7 @@ export BIGQUERYRC="$PWD/.bigqueryrc"
 
 ## Calidad
 
-Cada commit pasa por las revisiones automáticas que instala `make setup-dev` con pre-commit. SQLFluff revisa el estilo de los archivos `.sql` con las reglas de [`.sqlfluff`](.sqlfluff), Ruff revisa el estilo y el formato del código Python con la configuración de [`pyproject.toml`](pyproject.toml), y otro hook bloquea los archivos `.env`, las claves de cuenta de servicio y las credenciales de Dataform. GitHub Actions ejecuta las mismas revisiones y las pruebas en cada pull request hacia `main`, sin acceso a GCP. Los checks avisan en el PR, pero no impiden el merge.
+Cada commit pasa por las revisiones automáticas que instala `make setup-dev` con pre-commit. SQLFluff revisa el estilo de los archivos `.sql` con las reglas de [`.sqlfluff`](.sqlfluff), Ruff revisa el estilo y el formato del código Python con la configuración de [`pyproject.toml`](pyproject.toml), y otro hook bloquea los archivos `.env`, las claves de cuenta de servicio y los demás archivos de credenciales. GitHub Actions ejecuta las mismas revisiones y las pruebas en cada pull request hacia `main`, sin acceso a GCP. Los checks avisan en el PR, pero no impiden el merge.
 
 Estos objetivos ejecutan las revisiones a mano:
 

@@ -9,7 +9,6 @@
 .env
 .env.*
 !.env.example
-.df-credentials.json
 application_default_credentials.json
 *service-account*.json
 *-key.json
@@ -17,7 +16,6 @@ application_default_credentials.json
 
 # Local environments and dependencies
 .venv/
-node_modules/
 .pytest_cache/
 __pycache__/
 

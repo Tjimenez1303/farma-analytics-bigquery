@@ -76,7 +76,6 @@ def stub_path(tmp_path):
             "STUB_LOG": str(tmp_path / "stub.log"),
             "REAL_PYTHON": sys.executable,
             "DOCTOR_VENV": str(stubs / "venv"),
-            "DOCTOR_NODE_BIN": str(stubs / "node_bin"),
         }
         if overrides:
             env.update(overrides)

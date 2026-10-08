@@ -1,4 +1,0 @@
-#!/bin/bash
-# Fake dataform for tests.
-echo "dataform $*" >> "${STUB_LOG:-/dev/null}"
-echo "${STUB_DATAFORM_VERSION:-3.0.70}"
