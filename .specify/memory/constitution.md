@@ -18,9 +18,9 @@ documento.
   - dataset `farma_analytics`;
   - tablas `COMPRAS`, `CLUE_CAT` y `CUADRO_BASICO`;
   - vista `v_compras_farma_completa`.
-- Ninguna herramienta MAY añadir prefijos o sufijos ni cambiar las mayúsculas. Por ejemplo,
-  `schemaSuffix`, `tablePrefix` y `namePrefix` de Dataform quedan prohibidos en el entorno
-  entregable.
+- Ninguna herramienta MAY añadir prefijos o sufijos ni cambiar las mayúsculas. Por ejemplo, las
+  opciones de prefijo o sufijo por entorno de las herramientas de orquestación quedan prohibidas en
+  el entorno entregable.
 - Cada tabla MUST contener exactamente los campos que listan los requisitos, con esos mismos nombres.
 - La vista MUST unir `COMPRAS` con `CLUE_CAT` (vía `CLUE`) y con `CUADRO_BASICO` (vía `CLAVE`)
   mediante `INNER JOIN`.
@@ -126,7 +126,9 @@ leerse como referencia de estilo.
     `HAVING`, `ORDER BY`);
   - `AND` y `OR` al inicio de línea;
   - líneas de 100 caracteres o menos y sin coma final.
-- `AS` MUST escribirse siempre, tanto en tablas como en columnas.
+- `AS` MUST escribirse siempre, tanto en tablas como en columnas: todo alias lleva `AS` explícito.
+  Una columna que conserva su nombre de origen no lleva alias, porque un alias igual a ese nombre
+  es redundante y SQLFluff lo marca (regla AL09).
 - Los joins MUST escribirse como `INNER JOIN ... ON` explícito. Quedan prohibidos los joins con
   coma, el `JOIN` sin calificar y `USING`. La tabla de hechos (`COMPRAS`) va primero y los catálogos
   después.
@@ -272,8 +274,8 @@ violaciones, dry run sin errores y revisión contra esta lista.
     cuantificados;
   - precio unitario implícito (`IMPORTE / PIEZAS`) plausible para cada clave.
 - Cada regla MUST tener una única implementación canónica y MUST ejecutarse con un comando
-  documentado. La implementación es una assertion de Dataform o una consulta en `sql/checks/` que
-  debe devolver 0 filas.
+  documentado. La implementación es una consulta en `sql/checks/` que debe devolver 0 filas, con
+  un caso negativo en `sql/checks/negativos/` que demuestra que detecta su error.
 - Un chequeo fallido bloquea la entrega. Queda prohibido ocultarlo con `DISTINCT`, con filtros ad
   hoc o cambiando umbrales sin justificación.
 - El generador de datos MUST tener pruebas automatizadas (pytest) de determinismo, integridad
@@ -422,8 +424,8 @@ permisos de lectura explícitos. MUST comprobarse en una ventana de incógnito s
 ### VIII. Simplicidad, Reproducibilidad y Seguridad
 
 - YAGNI: se usa el mínimo de herramientas que cumple los requisitos. Cualquier componente extra MUST
-  justificarse en *Complexity Tracking*: Terraform, dbt, Composer, un repositorio Dataform en GCP,
-  vistas materializadas, BI Engine, particionado o clustering.
+  justificarse en *Complexity Tracking*: Terraform, dbt, Composer, Dataform (CLI o repositorio en
+  GCP), vistas materializadas, BI Engine, particionado o clustering.
 - Todo es código versionado:
   - el generador, los esquemas, los scripts de carga, el SQL y los chequeos;
   - una especificación escrita del dashboard (campos, controles, gráficos y tema), porque Data
@@ -599,7 +601,7 @@ las marcas que delatan texto generado por IA.
 | Almacén | Google BigQuery (GoogleSQL). Una sola location (por defecto `US`), declarada en la configuración y pasada en cada job. |
 | Carga | `bq load` con esquema explícito, o `LOAD DATA` desde Cloud Storage. Scripts idempotentes. |
 | Transformación | `sql/farma_analytics.sql`, única fuente de verdad de la DDL, la vista y las consultas. |
-| Calidad | Dataform CLI local (SHOULD) para assertions y declarations. SQLFluff (`bigquery`) con pre-commit. Dry run. |
+| Calidad | Consultas en `sql/checks/` ejecutadas con `bq` desde el `Makefile`, cada una con su caso negativo. SQLFluff (`bigquery`) con pre-commit. Dry run. |
 | Generador | Python 3.12 o superior, con versión fijada. NumPy y Faker (`es_MX`) con versión exacta. pytest. |
 | Orquestación | `Makefile`, sin Airflow ni Composer, que exporta `BIGQUERYRC` hacia el `.bigqueryrc` versionado (dialecto, location y límite de bytes). El proyecto de GCP usa `default_sql_dialect_option = 'only_google_sql'`. |
 | BI | Data Studio conectado a `v_compras_farma_completa`. |
@@ -619,18 +621,6 @@ las marcas que delatan texto generado por IA.
   - no se usa `default_table_expiration`.
 - El esquema de cada tabla MUST tener una única definición canónica: la DDL. Si `bq load` necesita
   un esquema JSON, MUST derivarse de la DDL o comprobarse contra ella.
-
-**Dataform**
-
-- Es la capa declarativa de calidad y documentación:
-  - CLI local con `@dataform/core` 3.x en versión exacta;
-  - `workflow_settings.yaml` en `dataform/`;
-  - una `declaration` para cada una de las tres tablas y para la vista;
-  - assertions en un dataset aparte (`farma_analytics_assertions`).
-- MUST NOT reimplementar la lógica de la vista. Antes de `run` se ejecutan `dataform compile` y
-  `dataform run --dry-run`.
-- Convertir el SQLX en la fuente de verdad requiere una enmienda. En ese caso, el `.sql` se genera
-  y un chequeo falla si difiere del versionado.
 
 **Convenciones de nombres**
 
@@ -658,8 +648,8 @@ las marcas que delatan texto generado por IA.
   - `bq` solo admite labels en jobs de consulta, así que los jobs de carga van sin labels.
 - Expiración:
   - Google recomienda configurar la expiración por defecto en datasets y tablas. En este proyecto
-    MAY aplicarse solo a datasets auxiliares o temporales (por ejemplo,
-    `farma_analytics_assertions`).
+    MAY aplicarse solo a datasets auxiliares o temporales (por ejemplo, un dataset de pruebas
+    `farma_analytics_<propósito>`).
   - MUST NOT aplicarse a `farma_analytics`, porque el dashboard debe seguir disponible durante la
     revisión.
   - Una tabla que expira se elimina con todos sus datos, aunque puede recuperarse dentro de la
@@ -701,7 +691,8 @@ las marcas que delatan texto generado por IA.
 
 **Estructura del repositorio (orientativa)**:
 
-- `generator/`, `data/`, `sql/` (entregable y `checks/`), `dataform/`, `scripts/` y `tests/`;
+- `generator/`, `data/`, `sql/` (entregable, `checks/` y `ops/`), `warehouse/`, `scripts/` y
+  `tests/`;
 - `docs/`: hallazgos, diccionario de datos, especificación del dashboard, trazabilidad y decisiones;
 - `specs/`: artefactos de Spec Kit.
 
@@ -842,7 +833,6 @@ documentación oficial el 2026-10-07.
     labels-intro. El anexo de estándares verificados detalla cada una.
   - Data Studio: a-typical-workflow, data-credentials, about-calculated-fields, about-controls y
     geo-dimension-reference.
-  - Dataform: best-practices-repositories y assertions.
   - SQLFluff, con el dialecto bigquery.
   - Teoría de visualización: Tufte, Few, Cleveland & McGill y Knaflic.
   - Accesibilidad: WCAG 2.1.
@@ -852,4 +842,4 @@ documentación oficial el 2026-10-07.
     - Alonso Simón et al. (UCM, RAEL 2025) sobre rasgos de GPT en español;
     - el *Diccionario panhispánico de dudas*.
 
-**Version**: 1.3.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
+**Version**: 1.4.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
