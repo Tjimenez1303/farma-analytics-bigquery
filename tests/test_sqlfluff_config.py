@@ -21,6 +21,7 @@ def lint(repo_root, tmp_path, name):
         capture_output=True,
         text=True,
         timeout=120,
+        check=False,
     )
     report = json.loads(proc.stdout)
     return {v["code"] for item in report for v in item["violations"]}, report

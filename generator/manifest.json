@@ -1,0 +1,33 @@
+{
+  "config_sha256": "1a7c0539bde5969ed60d7b14b94b4a866a6039b81b6e13f241c37fc6844d551a",
+  "files": [
+    {
+      "bytes": 221368,
+      "name": "CLUE_CAT.csv",
+      "rows": 2000,
+      "sha256": "fbd4b5dd26f4ebc3b3a5b2a8ae42043da2ec8284a993bb430d6fdf4dbc107445"
+    },
+    {
+      "bytes": 32263300,
+      "name": "COMPRAS.csv",
+      "rows": 300000,
+      "sha256": "0e21c97c883144f13b5f2356040064520ddf709c604974b8f7444d1aa438b238"
+    },
+    {
+      "bytes": 39691,
+      "name": "CUADRO_BASICO.csv",
+      "rows": 161,
+      "sha256": "e85cf4f2cc519e7621e944822ad712b0898bde6f669d94c9c74b061a4fe6802f"
+    }
+  ],
+  "format_version": 1,
+  "orphans": {
+    "CLAVE": 750,
+    "CLUE": 750
+  },
+  "versions": {
+    "faker": "40.39.0",
+    "numpy": "2.5.3",
+    "python": "3.12.14"
+  }
+}

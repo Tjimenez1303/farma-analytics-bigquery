@@ -1,0 +1,140 @@
+molecula,grupo_terapeutico,nivel_precio,presentaciones
+Aciclovir,Enfermedades Infecciosas y Parasitarias,medio,Tableta;tableta;400 mg;Envase con 35 tabletas
+Ácido acetilsalicílico,Analgesia,bajo,Tableta;tableta;500 mg;Envase con 20 tabletas
+Ácido fólico,Nutriología,bajo,Tableta;tableta;5 mg;Envase con 20 tabletas
+Ácido tranexámico,Hematología,medio,Solución inyectable;ampolleta;1 g;Envase con 5 ampolletas de 10 ml
+Ácido valproico,Neurología,bajo,Cápsula;cápsula;250 mg;Envase con 60 cápsulas
+Adalimumab,Reumatología y Traumatología,muy_alto,Solución inyectable;jeringa;40 mg;Envase con 2 jeringas prellenadas de 0.8 ml
+Albendazol,Enfermedades Infecciosas y Parasitarias,bajo,Tableta;tableta;200 mg;Envase con 2 tabletas
+Albúmina humana,Soluciones Electrolíticas y Sustitutos del Plasma,alto,Solución inyectable al 20 %;frasco ámpula;10 g;Envase con 1 frasco ámpula de 50 ml
+Alopurinol,Reumatología y Traumatología,bajo,Tableta;tableta;300 mg;Envase con 20 tabletas
+Amlodipino,Cardiología,bajo,Tableta;tableta;5 mg;Envase con 30 tabletas
+Amoxicilina,Enfermedades Infecciosas y Parasitarias,bajo,Cápsula;cápsula;500 mg;Envase con 12 cápsulas|Suspensión oral;5 ml;250 mg;Envase con polvo para 75 ml
+Amoxicilina y ácido clavulánico,Enfermedades Infecciosas y Parasitarias,medio,Tableta;tableta;500 mg y 125 mg;Envase con 12 tabletas
+Anastrozol,Oncología,medio,Tableta;tableta;1 mg;Envase con 28 tabletas
+Atorvastatina,Cardiología,medio,Tableta;tableta;20 mg;Envase con 10 tabletas|Tableta;tableta;40 mg;Envase con 30 tabletas
+Azitromicina,Enfermedades Infecciosas y Parasitarias,medio,Tableta;tableta;500 mg;Envase con 3 tabletas
+Bevacizumab,Oncología,muy_alto,Solución inyectable;frasco ámpula;400 mg;Envase con 1 frasco ámpula de 16 ml
+Bromuro de ipratropio,Neumología,medio,Solución para nebulizar;ml;0.25 mg;Envase con 20 ml
+Budesonida,Neumología,medio,Suspensión en aerosol;inhalación;200 µg;Envase con inhalador para 200 dosis
+Bupivacaína,Anestesia,medio,Solución inyectable;frasco ámpula;150 mg;Envase con 1 frasco ámpula de 30 ml
+Butilhioscina,Gastroenterología,bajo,Gragea;gragea;10 mg;Envase con 10 grageas|Solución inyectable;ampolleta;20 mg;Envase con 3 ampolletas de 1 ml
+Calcitriol,Nutriología,medio,Cápsula;cápsula;0.25 µg;Envase con 50 cápsulas
+Capecitabina,Oncología,alto,Tableta;tableta;500 mg;Envase con 120 tabletas
+Captopril,Cardiología,bajo,Tableta;tableta;25 mg;Envase con 30 tabletas
+Carbamazepina,Neurología,bajo,Tableta;tableta;200 mg;Envase con 20 tabletas
+Carbetocina,Gineco-obstetricia,alto,Solución inyectable;ampolleta;100 µg;Envase con 1 ampolleta de 1 ml
+Carboplatino,Oncología,alto,Solución inyectable;frasco ámpula;450 mg;Envase con 1 frasco ámpula de 45 ml
+Ceftriaxona,Enfermedades Infecciosas y Parasitarias,medio,Solución inyectable;frasco ámpula;1 g;Envase con 1 frasco ámpula y 10 ml de diluyente
+Cetirizina,Enfermedades Inmunoalérgicas,bajo,Tableta;tableta;10 mg;Envase con 10 tabletas
+Ciclofosfamida,Oncología,medio,Solución inyectable;frasco ámpula;1 g;Envase con 2 frascos ámpula
+Ciprofloxacino,Enfermedades Infecciosas y Parasitarias,bajo,Tableta;tableta;250 mg;Envase con 8 tabletas
+Cisplatino,Oncología,medio,Solución inyectable;frasco ámpula;50 mg;Envase con 1 frasco ámpula de 50 ml
+Claritromicina,Enfermedades Infecciosas y Parasitarias,medio,Tableta;tableta;250 mg;Envase con 10 tabletas
+Clioquinol,Dermatología,bajo,Crema;100 g;3 g;Envase con 20 g
+Clonazepam,Psiquiatría,bajo,Tableta;tableta;2 mg;Envase con 30 tabletas
+Clopidogrel,Cardiología,medio,Gragea;gragea;75 mg;Envase con 14 grageas|Gragea;gragea;75 mg;Envase con 28 grageas
+Clorfenamina,Enfermedades Inmunoalérgicas,bajo,Tableta;tableta;4 mg;Envase con 20 tabletas
+Cloruro de sodio,Soluciones Electrolíticas y Sustitutos del Plasma,bajo,Solución inyectable al 0.9 %;100 ml;0.9 g;Envase con 1 000 ml|Solución inyectable al 0.9 %;100 ml;0.9 g;Envase con 250 ml
+Colchicina,Reumatología y Traumatología,bajo,Tableta;tableta;1 mg;Envase con 30 tabletas
+Dapagliflozina,Endocrinología y Metabolismo,medio,Tableta;tableta;10 mg;Envase con 28 tabletas
+Diclofenaco,Analgesia,bajo,Solución inyectable;ampolleta;75 mg;Envase con 2 ampolletas de 3 ml|Tableta;tableta;100 mg;Envase con 20 tabletas
+Digoxina,Cardiología,bajo,Tableta;tableta;0.25 mg;Envase con 20 tabletas
+Docetaxel,Oncología,alto,Solución inyectable;frasco ámpula;80 mg;Envase con 1 frasco ámpula
+Dolutegravir,Enfermedades Infecciosas y Parasitarias,alto,Tableta;tableta;50 mg;Envase con 30 tabletas
+Doxorrubicina,Oncología,alto,Solución inyectable;frasco ámpula;50 mg;Envase con 1 frasco ámpula
+Enalapril,Cardiología,bajo,Tableta;tableta;10 mg;Envase con 30 tabletas
+Enoxaparina,Hematología,medio,Solución inyectable;jeringa;40 mg;Envase con 2 jeringas de 0.4 ml|Solución inyectable;jeringa;60 mg;Envase con 2 jeringas de 0.6 ml
+Eritropoyetina,Hematología,alto,Solución inyectable;frasco ámpula;4 000 UI;Envase con 6 frascos ámpula de 1 ml
+Escitalopram,Psiquiatría,medio,Tableta;tableta;10 mg;Envase con 28 tabletas
+Espironolactona,Cardiología,bajo,Tableta;tableta;25 mg;Envase con 20 tabletas
+Etanercept,Reumatología y Traumatología,muy_alto,Solución inyectable;jeringa;50 mg;Envase con 4 jeringas prellenadas de 1 ml
+Etonogestrel,Planificación Familiar,alto,Implante;implante;68 mg;Envase con 1 implante y aplicador
+Fenitoína,Neurología,bajo,Tableta;tableta;100 mg;Envase con 50 tabletas|Solución inyectable;ampolleta;250 mg;Envase con 1 ampolleta de 5 ml
+Filgrastim,Hematología,alto,Solución inyectable;frasco ámpula;300 µg;Envase con 5 frascos ámpula
+Finasterida,Nefrología y Urología,bajo,Gragea;gragea;5 mg;Envase con 30 grageas
+Fluconazol,Enfermedades Infecciosas y Parasitarias,bajo,Cápsula;cápsula;100 mg;Envase con 10 cápsulas
+Flumazenil,Intoxicaciones,medio,Solución inyectable;ampolleta;0.5 mg;Envase con 1 ampolleta de 5 ml
+Fluoxetina,Psiquiatría,bajo,Cápsula;cápsula;20 mg;Envase con 14 cápsulas
+Fluticasona,Otorrinolaringología,medio,Suspensión para aplicación nasal;nebulización;50 µg;Envase nebulizador con 120 dosis
+Furosemida,Cardiología,bajo,Tableta;tableta;40 mg;Envase con 20 tabletas|Solución inyectable;ampolleta;20 mg;Envase con 5 ampolletas de 2 ml
+Gabapentina,Neurología,medio,Cápsula;cápsula;300 mg;Envase con 15 cápsulas
+Glibenclamida,Endocrinología y Metabolismo,bajo,Tableta;tableta;5 mg;Envase con 50 tabletas
+Glucosa,Soluciones Electrolíticas y Sustitutos del Plasma,bajo,Solución inyectable al 5 %;100 ml;5 g;Envase con 1 000 ml
+Haloperidol,Psiquiatría,bajo,Tableta;tableta;5 mg;Envase con 20 tabletas|Solución inyectable;ampolleta;5 mg;Envase con 6 ampolletas de 1 ml
+Heparina,Hematología,medio,Solución inyectable;frasco ámpula;10 000 UI;Envase con 50 frascos ámpula de 10 ml
+Hidroclorotiazida,Cardiología,bajo,Tableta;tableta;25 mg;Envase con 20 tabletas
+Hidrocortisona,Dermatología,bajo,Crema;100 g;1 g;Envase con 15 g
+Ibuprofeno,Analgesia,bajo,Tableta;tableta;400 mg;Envase con 10 tabletas|Suspensión oral;ml;20 mg;Envase con 120 ml
+Imatinib,Oncología,muy_alto,Tableta;tableta;400 mg;Envase con 30 tabletas
+Insulina glargina,Endocrinología y Metabolismo,alto,Solución inyectable;ml;100 UI;Envase con 1 frasco ámpula de 10 ml|Solución inyectable;ml;100 UI;Envase con 5 cartuchos de 3 ml
+Insulina humana,Endocrinología y Metabolismo,medio,Suspensión inyectable;ml;100 UI;Envase con 1 frasco ámpula de 10 ml
+Insulina lispro,Endocrinología y Metabolismo,alto,Solución inyectable;ml;100 UI;Envase con 1 frasco ámpula de 10 ml
+Isosorbida,Cardiología,bajo,Tableta;tableta;10 mg;Envase con 20 tabletas
+Isotretinoína,Dermatología,medio,Cápsula;cápsula;20 mg;Envase con 30 cápsulas
+Ketorolaco,Analgesia,bajo,Solución inyectable;frasco ámpula;30 mg;Envase con 3 frascos ámpula de 1 ml
+Latanoprost,Oftalmología,medio,Solución oftálmica;ml;50 µg;Envase con gotero integral con 2.5 ml
+Levetiracetam,Neurología,medio,Tableta;tableta;500 mg;Envase con 60 tabletas
+Levodopa y carbidopa,Neurología,medio,Tableta;tableta;250 mg y 25 mg;Envase con 100 tabletas
+Levofloxacino,Enfermedades Infecciosas y Parasitarias,medio,Tableta;tableta;500 mg;Envase con 7 tabletas
+Levonorgestrel,Planificación Familiar,medio,Tableta;tableta;0.75 mg;Envase con 2 tabletas
+Levotiroxina,Endocrinología y Metabolismo,bajo,Tableta;tableta;100 µg;Envase con 50 tabletas
+Lidocaína,Anestesia,bajo,Solución inyectable;frasco ámpula;200 mg;Envase con 5 frascos ámpula de 10 ml
+Loperamida,Gastroenterología,bajo,Tableta;tableta;2 mg;Envase con 12 tabletas
+Loratadina,Enfermedades Inmunoalérgicas,bajo,Tableta;tableta;10 mg;Envase con 20 tabletas|Jarabe;ml;1 mg;Envase con 60 ml
+Losartán,Cardiología,bajo,Gragea;gragea;50 mg;Envase con 30 grageas
+Medroxiprogesterona,Planificación Familiar,medio,Suspensión inyectable;frasco ámpula;150 mg;Envase con 1 frasco ámpula de 1 ml
+Meropenem,Enfermedades Infecciosas y Parasitarias,alto,Solución inyectable;frasco ámpula;1 g;Envase con 1 frasco ámpula
+Mesalazina,Gastroenterología,medio,Tableta de liberación prolongada;tableta;500 mg;Envase con 40 tabletas
+Metamizol sódico,Analgesia,bajo,Comprimido;comprimido;500 mg;Envase con 10 comprimidos|Solución inyectable;ampolleta;1 g;Envase con 3 ampolletas de 2 ml
+Metformina,Endocrinología y Metabolismo,bajo,Tableta;tableta;850 mg;Envase con 30 tabletas
+Metilprednisolona,Reumatología y Traumatología,medio,Solución inyectable;frasco ámpula;500 mg;Envase con 50 frascos ámpula y diluyente
+Metoclopramida,Gastroenterología,bajo,Tableta;tableta;10 mg;Envase con 20 tabletas|Solución inyectable;ampolleta;10 mg;Envase con 6 ampolletas de 2 ml
+Metoprolol,Cardiología,bajo,Tableta;tableta;100 mg;Envase con 20 tabletas
+Metotrexato,Oncología,medio,Solución inyectable;frasco ámpula;500 mg;Envase con 1 frasco ámpula de 20 ml|Tableta;tableta;2.5 mg;Envase con 50 tabletas
+Metronidazol,Enfermedades Infecciosas y Parasitarias,bajo,Tableta;tableta;500 mg;Envase con 30 tabletas|Solución inyectable;ampolleta;500 mg;Envase con 1 frasco de 100 ml
+Midazolam,Anestesia,medio,Solución inyectable;ampolleta;15 mg;Envase con 5 ampolletas de 3 ml
+Misoprostol,Gineco-obstetricia,medio,Tableta;tableta;200 µg;Envase con 28 tabletas
+Montelukast,Neumología,medio,Comprimido;comprimido;10 mg;Envase con 30 comprimidos
+Naloxona,Intoxicaciones,medio,Solución inyectable;ampolleta;0.4 mg;Envase con 10 ampolletas de 1 ml
+Naproxeno,Analgesia,bajo,Tableta;tableta;250 mg;Envase con 30 tabletas
+Olanzapina,Psiquiatría,medio,Tableta;tableta;10 mg;Envase con 14 tabletas
+Omeprazol,Gastroenterología,bajo,Cápsula;cápsula;20 mg;Envase con 14 cápsulas|Solución inyectable;frasco ámpula;40 mg;Envase con 1 frasco ámpula
+Ondansetrón,Gastroenterología,medio,Solución inyectable;ampolleta;8 mg;Envase con 3 ampolletas de 4 ml|Tableta;tableta;8 mg;Envase con 10 tabletas
+Oseltamivir,Enfermedades Infecciosas y Parasitarias,medio,Cápsula;cápsula;75 mg;Envase con 10 cápsulas
+Oxaliplatino,Oncología,alto,Solución inyectable;frasco ámpula;100 mg;Envase con 1 frasco ámpula
+Oxitocina,Gineco-obstetricia,bajo,Solución inyectable;ampolleta;5 UI;Envase con 50 ampolletas de 1 ml
+Paclitaxel,Oncología,alto,Solución inyectable;frasco ámpula;300 mg;Envase con 1 frasco ámpula de 50 ml
+Pantoprazol,Gastroenterología,medio,Tableta;tableta;40 mg;Envase con 14 tabletas
+Paracetamol,Analgesia,bajo,Tableta;tableta;500 mg;Envase con 10 tabletas|Solución oral;ml;100 mg;Envase con 15 ml
+Pembrolizumab,Oncología,muy_alto,Solución inyectable;frasco ámpula;100 mg;Envase con 1 frasco ámpula de 4 ml
+Pioglitazona,Endocrinología y Metabolismo,medio,Tableta;tableta;15 mg;Envase con 7 tabletas
+Piperacilina y tazobactam,Enfermedades Infecciosas y Parasitarias,alto,Solución inyectable;frasco ámpula;4 g y 500 mg;Envase con 1 frasco ámpula
+Pravastatina,Cardiología,medio,Tableta;tableta;10 mg;Envase con 30 tabletas
+Prednisona,Reumatología y Traumatología,bajo,Tableta;tableta;50 mg;Envase con 20 tabletas
+Pregabalina,Neurología,medio,Cápsula;cápsula;75 mg;Envase con 28 cápsulas
+Progesterona,Gineco-obstetricia,medio,Cápsula;cápsula;100 mg;Envase con 30 cápsulas
+Propofol,Anestesia,medio,Solución inyectable;ampolleta;200 mg;Envase con 5 ampolletas de 20 ml
+Quetiapina,Psiquiatría,medio,Tableta;tableta;100 mg;Envase con 60 tabletas
+Risperidona,Psiquiatría,medio,Tableta;tableta;2 mg;Envase con 40 tabletas
+Rituximab,Oncología,muy_alto,Solución inyectable;frasco ámpula;500 mg;Envase con 1 frasco ámpula de 50 ml|Solución inyectable;frasco ámpula;100 mg;Envase con 2 frascos ámpula de 10 ml
+Salbutamol,Neumología,bajo,Suspensión en aerosol;inhalación;100 µg;Envase con inhalador para 200 dosis
+Salmeterol y fluticasona,Neumología,alto,Polvo para inhalación;dosis;50 µg y 250 µg;Envase con dispositivo para 60 dosis
+Sertralina,Psiquiatría,bajo,Tableta;tableta;50 mg;Envase con 14 tabletas
+Sevelámero,Nefrología y Urología,medio,Tableta;tableta;800 mg;Envase con 180 tabletas
+Sevoflurano,Anestesia,alto,Líquido para inhalación;frasco;250 ml;Envase con un frasco de 250 ml
+Sitagliptina,Endocrinología y Metabolismo,medio,Comprimido;comprimido;100 mg;Envase con 28 comprimidos
+Solución Hartmann,Soluciones Electrolíticas y Sustitutos del Plasma,bajo,Solución inyectable;100 ml;0.6 g de cloruro de sodio;Envase con 1 000 ml
+Sulfato ferroso,Hematología,bajo,Tableta;tableta;200 mg;Envase con 30 tabletas
+Tamoxifeno,Oncología,bajo,Tableta;tableta;20 mg;Envase con 14 tabletas
+Tamsulosina,Nefrología y Urología,medio,Cápsula;cápsula;0.4 mg;Envase con 20 cápsulas
+Telmisartán,Cardiología,medio,Tableta;tableta;40 mg;Envase con 30 tabletas
+Timolol,Oftalmología,bajo,Solución oftálmica;ml;5 mg;Envase con gotero integral con 5 ml
+Tiotropio,Neumología,alto,Polvo para inhalación;cápsula;18 µg;Envase con 30 cápsulas e inhalador
+Tocilizumab,Reumatología y Traumatología,muy_alto,Solución inyectable;frasco ámpula;400 mg;Envase con 1 frasco ámpula de 20 ml
+Tramadol,Analgesia,medio,Solución inyectable;ampolleta;100 mg;Envase con 5 ampolletas de 2 ml
+Trastuzumab,Oncología,muy_alto,Solución inyectable;frasco ámpula;440 mg;Envase con 1 frasco ámpula y diluyente|Solución inyectable;frasco ámpula;150 mg;Envase con 1 frasco ámpula
+Trimetoprima y sulfametoxazol,Enfermedades Infecciosas y Parasitarias,bajo,Tableta;tableta;80 mg y 400 mg;Envase con 20 tabletas
+Tropicamida,Oftalmología,bajo,Solución oftálmica;ml;10 mg;Envase con gotero integral con 15 ml
+Vancomicina,Enfermedades Infecciosas y Parasitarias,medio,Solución inyectable;frasco ámpula;500 mg;Envase con 1 frasco ámpula
+Warfarina,Hematología,bajo,Tableta;tableta;5 mg;Envase con 25 tabletas

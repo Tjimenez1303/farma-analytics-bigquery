@@ -1,0 +1,62 @@
+# Root seed, 128-bit hex string (TOML integers are limited to 64 bits).
+seed = "0xa3b8cf58a2876743564f94c36db190e0"
+
+# Date range of COMPRAS.
+[periodo]
+inicio = 2024-01-01
+fin = 2025-12-31
+solo_dias_laborables = true
+
+# Row counts and company counts.
+[volumen]
+lineas_compra = 20000
+unidades_medicas = 400
+fabricantes_innovadores = 6
+fabricantes_genericos = 9
+proveedores = 20
+genericos_por_molecula = [1, 4]
+proveedores_por_fabricante = [1, 3]
+piezas_max = 50000
+
+# Purchase rows whose CLUE or CLAVE has no catalog match.
+[huerfanos]
+orphan_rate = 0.005
+proporcion_clue = 0.5
+
+# Long-tail concentration by molecule, entity, institution and care level.
+[concentracion]
+alpha_moleculas = 0.9
+moleculas_destacadas = { "Insulina glargina" = 2, "Atorvastatina" = 4, "Clopidogrel" = 6 }
+beta_entidades = 1.0
+participacion_institucion = { "IMSS" = 0.42, "IMSS-Bienestar" = 0.18, "ISSSTE" = 0.15, "Servicios Estatales de Salud" = 0.12, "SEDENA" = 0.06, "SEMAR" = 0.04, "PEMEX" = 0.03 }
+reparto_nivel = { "Primer nivel" = 0.70, "Segundo nivel" = 0.25, "Tercer nivel" = 0.05 }
+peso_compra_nivel = { "Primer nivel" = 1.0, "Segundo nivel" = 4.0, "Tercer nivel" = 12.0 }
+
+# Monthly factors (January to December) and year-over-year growth.
+[estacionalidad]
+factores_mes = [1.25, 1.15, 1.10, 1.00, 0.95, 0.95, 0.90, 0.95, 1.00, 0.95, 0.90, 0.90]
+crecimiento_total = 0.06
+
+# Price per piece in MXN by price level, manufacturer factors and noise.
+[precios]
+nivel = { bajo = [15.0, 100.0], medio = [100.0, 600.0], alto = [600.0, 2500.0], muy_alto = [2500.0, 9000.0] }
+factor_referencia = [1.40, 1.80]
+factor_generico = [0.50, 0.80]
+ruido_max = 0.10
+piezas_lognormal = { mu = 4.5, sigma = 1.2 }
+
+# P3: reference-manufacturer mix by institution.
+[patrones.p3]
+molecula_ejemplo = "Clopidogrel"
+prob_referencia = { "PEMEX" = 0.75, "SEMAR" = 0.70, "SEDENA" = 0.65, "ISSSTE" = 0.40, "Servicios Estatales de Salud" = 0.35, "IMSS-Bienestar" = 0.25, "IMSS" = 0.20 }
+
+# P4: therapeutic-group growth in the last year of the period.
+[patrones.p4]
+factor_2025 = { "Oncología" = 1.30 }
+factor_2025_resto = 1.05
+
+# P5: generic manufacturer share gain between the first and last year.
+[patrones.p5]
+moleculas = ["Atorvastatina", "Insulina glargina"]
+cuota_generico_inicial = 0.15
+cuota_generico_final = 0.32

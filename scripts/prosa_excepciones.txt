@@ -6,6 +6,8 @@
 clave primaria
 estimador robusto
 medicamento innovador
+fabricante innovador
+fabricantes innovadores
 
 [nombres_propios]
 BigQuery

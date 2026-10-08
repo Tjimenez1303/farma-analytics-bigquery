@@ -1,0 +1,33 @@
+cve_ent,entidad,codigo_clues,poblacion_2020,imss_bienestar,sedena,semar,pemex
+01,Aguascalientes,AS,1425607,0,1,0,0
+02,Baja California,BC,3769020,1,1,1,0
+03,Baja California Sur,BS,798447,1,1,1,0
+04,Campeche,CC,928363,1,1,1,1
+05,Coahuila de Zaragoza,CL,3146771,0,1,0,0
+06,Colima,CM,731391,1,1,1,0
+07,Chiapas,CS,5543828,1,1,1,1
+08,Chihuahua,CH,3741869,0,1,0,1
+09,Ciudad de México,DF,9209944,1,1,1,1
+10,Durango,DG,1832650,0,1,0,0
+11,Guanajuato,GT,6166934,0,1,0,1
+12,Guerrero,GR,3540685,1,1,1,0
+13,Hidalgo,HG,3082841,1,0,0,1
+14,Jalisco,JC,8348151,0,1,1,1
+15,México,MC,16992418,1,1,0,1
+16,Michoacán de Ocampo,MN,4748846,1,1,1,0
+17,Morelos,MS,1971520,1,1,0,0
+18,Nayarit,NT,1235456,1,0,1,0
+19,Nuevo León,NL,5784442,0,1,0,1
+20,Oaxaca,OC,4132148,1,1,1,1
+21,Puebla,PL,6583278,1,1,0,1
+22,Querétaro,QT,2368467,0,1,0,0
+23,Quintana Roo,QR,1857985,1,1,1,0
+24,San Luis Potosí,SP,2822255,1,1,0,1
+25,Sinaloa,SL,3026943,1,1,1,1
+26,Sonora,SR,2944840,1,1,1,0
+27,Tabasco,TC,2402598,1,1,1,1
+28,Tamaulipas,TS,3527735,1,1,1,1
+29,Tlaxcala,TL,1342977,1,0,0,0
+30,Veracruz de Ignacio de la Llave,VZ,8062579,1,1,1,1
+31,Yucatán,YN,2320898,1,1,1,0
+32,Zacatecas,ZS,1622138,1,1,0,0

@@ -1,0 +1,8 @@
+institucion,prefijo_clues,grupo_institucional,prefijo_delegacion,presencia
+IMSS,IMS,Seguridad social,OOAD,todas
+ISSSTE,IST,Seguridad social,Oficina de Representación,todas
+SEDENA,SDN,Fuerzas Armadas y PEMEX,Servicios de Sanidad Militar,sedena
+SEMAR,SMA,Fuerzas Armadas y PEMEX,Sanidad Naval,semar
+PEMEX,PMX,Fuerzas Armadas y PEMEX,Servicios de Salud PEMEX,pemex
+IMSS-Bienestar,IMO,Población sin seguridad social,Coordinación Estatal,imss_bienestar
+Servicios Estatales de Salud,SSA,Población sin seguridad social,Servicios de Salud,no_imss_bienestar

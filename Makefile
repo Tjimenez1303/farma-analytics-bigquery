@@ -18,10 +18,10 @@ LOCATION = $(shell sed -n 's/^--location=//p' .bigqueryrc)
 REGION = region-$(shell printf '%s' '$(LOCATION)' | tr '[:upper:]' '[:lower:]')
 DIALECT_SQL = ALTER PROJECT \`$(PROJECT_ID)\` SET OPTIONS (\`$(REGION).default_sql_dialect_option\` = 'only_google_sql')
 
-.PHONY: help setup-dev test require-venv require-project doctor gcp-dialect gcp-quota gcp-budget gcp-setup lint lint-sql lint-prosa
+.PHONY: help setup-dev test require-venv require-project doctor gcp-dialect gcp-quota gcp-budget gcp-setup lint lint-sql lint-prosa data data-verify data-manifest
 
 help: ## Lista los objetivos disponibles
-	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-12s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-12s %s\n", $$1, $$2}'
 
 require-venv:
 	@test -d .venv || { echo "Falta .venv: ejecuta 'make setup-dev'."; exit 1; }
@@ -62,3 +62,14 @@ lint-sql: require-venv ## Revisa el estilo de los archivos .sql con SQLFluff
 
 lint-prosa: ## Revisa la prosa para lectores según el principio IX de la constitución
 	@scripts/lint_prosa.sh
+
+data: require-venv ## Genera los datos sintéticos y los verifica contra el manifiesto versionado
+	uv run python -m generator generate
+	uv run python -m generator verify
+
+data-verify: require-venv ## Verifica data/ contra generator/manifest.json
+	uv run python -m generator verify
+
+data-manifest: require-venv ## Actualiza generator/manifest.json tras un cambio intencional de parámetros
+	@test -f data/manifest.json || { echo "Falta data/manifest.json: ejecuta 'make data' antes."; exit 1; }
+	cp data/manifest.json generator/manifest.json
