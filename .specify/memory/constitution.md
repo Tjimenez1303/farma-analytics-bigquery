@@ -350,8 +350,11 @@ Cleveland & McGill y Knaflic, junto con WCAG 2.1.
   - `GRUPO_TERAPEUTICO` / `MOLECULA`.
 - Los controles van en una franja común en la cabecera. Son listas desplegables con búsqueda,
   encadenadas en cascada.
-- El rango de fechas por defecto MUST cubrir un periodo con datos. *Auto* (últimos 28 días)
-  dejaría vacío un tablero de datos históricos.
+- El rango de fechas por defecto MUST ser un rango fijo que cubra un periodo con datos y cuyo
+  periodo de referencia de comparación también tenga datos. *Auto* MUST NOT usarse: con BigQuery
+  muestra todo el rango de fechas del dataset (los últimos 28 días solo aplican a Google Ads,
+  Analytics y YouTube), así que su periodo de comparación queda sin datos o solo en parte, y además
+  deja el valor por defecto implícito en lugar de escrito en la especificación del dashboard.
 - Cada control MUST afectar a todos los visuales. Si hay alguna excepción, MUST indicarse en el
   tablero.
 - MUST existir un botón para restablecer los filtros, y el cross-filtering MUST estar activo en los
@@ -831,8 +834,8 @@ documentación oficial el 2026-10-07.
     compute, best-practices-costs, best-practices-storage, data-types, data-definition-language,
     primary-foreign-keys, load-statements, introduction-sql, legacy-sql-feature-availability y
     labels-intro. El anexo de estándares verificados detalla cada una.
-  - Data Studio: a-typical-workflow, data-credentials, about-calculated-fields, about-controls y
-    geo-dimension-reference.
+  - Data Studio: a-typical-workflow, data-credentials, about-calculated-fields, about-controls,
+    geo-dimension-reference y set-report-date-ranges (verificada el 2026-10-08).
   - SQLFluff, con el dialecto bigquery.
   - Teoría de visualización: Tufte, Few, Cleveland & McGill y Knaflic.
   - Accesibilidad: WCAG 2.1.
@@ -842,4 +845,4 @@ documentación oficial el 2026-10-07.
     - Alonso Simón et al. (UCM, RAEL 2025) sobre rasgos de GPT en español;
     - el *Diccionario panhispánico de dudas*.
 
-**Version**: 1.4.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
+**Version**: 1.4.1 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
