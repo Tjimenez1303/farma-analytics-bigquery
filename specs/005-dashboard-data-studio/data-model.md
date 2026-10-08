@@ -15,7 +15,7 @@ Todo lo de este archivo pasa a `docs/dashboard.md` en lenguaje para lectores
 | Nombre | `v_compras_farma_completa (BigQuery)` | Trazabilidad 1:1 |
 | Credenciales | *Owner's credentials* | FR-002 |
 | Frescura de datos | 12 horas | FR-003, R1 |
-| "Field Editing in Reports" | Desactivado, para que los campos solo se editen en la fuente | FR-004 |
+| "Field Editing in Reports" | Activado desde el 2026-10-08, solo para el "Percent of total" de la tabla de instituciones (R7). Los campos se definen en la fuente | FR-004, FR-018 |
 
 ## Campos de la fuente
 
@@ -50,6 +50,7 @@ la página principal.
 | Campo calculado | Fórmula | Tipo | Agregación | Uso |
 |---|---|---|---|---|
 | Precio Promedio | `SUM(IMPORTE) / NULLIF(SUM(PIEZAS), 0)` | Currency (MXN) | Auto (fija) | Tarjeta, tabla |
+| Entidad (abreviatura) | `CASE Entidad WHEN <nombre> THEN <abreviatura del INEGI> … ELSE Entidad END`, 32 pares (R6) | Text | None | Etiquetas de las barras de entidades |
 
 Alternativas registradas (R2, R9, R11), que solo se crean si la prueba en el producto las exige:
 
@@ -82,27 +83,32 @@ superior izquierda (x, y, ancho, alto). Es la maqueta aprobada el 2026-10-08.
 | Lista Grupo terapéutico | 950 | 80 | 220 | 50 | 1 |
 | Lista Molécula | 1180 | 80 | 220 | 50 | 1 |
 | Botón Restablecer filtros | 1410 | 80 | 170 | 50 | 1 |
-| Tarjeta Monto Total Comprado | 20 | 150 | 360 | 100 | 2 |
-| Tarjeta Total de Piezas Adjudicadas | 400 | 150 | 360 | 100 | 2 |
-| Tarjeta Precio Promedio General por Pieza | 780 | 150 | 360 | 100 | 2 |
-| Recuadro Hallazgos clave | 1160 | 150 | 420 | 100 | 2 |
-| Barras Gasto por entidad | 20 | 270 | 500 | 610 | 3 |
-| Mapa Gasto por entidad | 540 | 270 | 510 | 280 | 3 |
-| Barras Participación por institución | 1070 | 270 | 510 | 280 | 3 |
-| Tabla Top 10 molécula-fabricante | 540 | 570 | 1040 | 310 | 4 |
+| Tarjeta Monto Total Comprado | 20 | 140 | 360 | 90 | 2 |
+| Tarjeta Total de Piezas Adjudicadas | 400 | 140 | 360 | 90 | 2 |
+| Tarjeta Precio Promedio General por Pieza | 780 | 140 | 360 | 90 | 2 |
+| Título del recuadro Hallazgos clave | 1160 | 140 | 420 | 20 | 2 |
+| Texto del recuadro Hallazgos clave | 1160 | 160 | 420 | 70 | 2 |
+| Marco de Periodo | 20 | 80 | 230 | 50 | 1 |
+| Marcos de las tarjetas | 20, 400 y 780 | 140 | 360 | 90 | 2 |
+| Barras Gasto por entidad | 20 | 240 | 500 | 640 | 3 |
+| Mapa Gasto por entidad | 540 | 240 | 510 | 270 | 3 |
+| Tabla Participación por institución | 1070 | 240 | 510 | 270 | 3 |
+| Tabla Top 10 molécula-fabricante | 540 | 530 | 1040 | 350 | 4 |
+
+Rejilla ajustada al construir (decisión del dueño del 2026-10-08): con filas de unos 29 px, la tabla del top 10 necesita unos 345 px para sus 10 filas, su encabezado y su título, y en 310 px solo se veían 9. Las tarjetas bajaron a 90 px y todo lo de debajo subió 30 px. La fila de tarjetas y hallazgos termina en y 230, a 10 px de los gráficos.
 
 Si se aplica la alternativa de flechas de R5, se añaden tres tarjetas de 60 × 30 en x 310, 690 y
-1070, y 220, y el texto de la excepción en x 20, y 252, 1120 × 16.
+1070, y 190, y el texto de la excepción en x 20, y 222, 1120 × 16.
 
 ## Textos fijos
 
 | Componente | Texto literal | Tamaño y color |
 |---|---|---|
-| Título | "Compras públicas de medicamentos en México" | 26 px, `#202124` |
-| Subtítulo | "Datos sintéticos generados para este proyecto, del 1 ene 2024 al 31 dic 2025 (fecha de corte). El tablero abre con 2025 y cada tarjeta compara el rango elegido con el periodo anterior de la misma duración (con el rango por defecto, del 2 ene al 31 dic 2024). Precio promedio: suma de IMPORTE entre suma de PIEZAS, ponderado por piezas." | 12 px, `#5F6368`, dos líneas |
+| Título | "Compras públicas de medicamentos en México" | 24 px, `#202124` |
+| Subtítulo | "Datos sintéticos generados para este proyecto, del 1 ene 2024 al 31 dic 2025 (fecha de corte). Importes en pesos mexicanos (MXN). El tablero abre con 2025 y el rango se puede cambiar. Las tarjetas comparan con las mismas fechas del año anterior, y con rangos de más de un año el cambio no es comparable. Precio promedio ponderado: importe total entre piezas totales." | 12 px, `#5F6368`, dos líneas |
 | Etiqueta del control de fechas | "Periodo" | 12 px, `#5F6368` |
 | Botón | "Restablecer filtros" | 12 px, `#0072B2` |
-| Etiqueta de comparación de las tarjetas | "frente al periodo anterior" | La de la tarjeta |
+| Etiqueta de comparación de las tarjetas | "frente al mismo periodo del año anterior" | La de la tarjeta |
 
 El subtítulo cumple FR-009 y FR-026. Si cambia el rango por defecto, cambia también el subtítulo.
 
@@ -128,9 +134,9 @@ una, se indica junto al visual afectado (FR-010).
 
 | Tarjeta | Métrica | Unidad visible | Formato del valor | Comparación |
 |---|---|---|---|---|
-| Monto Total Comprado | Importe (`SUM(IMPORTE)`) | pesos (MXN) | Compacto, 1 decimal | Previous period, cambio en %, 1 decimal |
-| Total de Piezas Adjudicadas | Piezas (`SUM(PIEZAS)`) | piezas | Compacto, 2 decimales | Previous period, cambio en %, 1 decimal |
-| Precio Promedio General por Pieza | Precio Promedio | pesos (MXN) por pieza | Compacto, 2 decimales (por debajo de mil se ve igual, por encima pasa a "K") | Previous period, cambio en %, 1 decimal |
+| Monto Total Comprado | Importe (`SUM(IMPORTE)`) | "$" en el valor, moneda en el subtítulo | Compacto, 1 decimal | Previous year, cambio en %, 1 decimal |
+| Total de Piezas Adjudicadas | Piezas (`SUM(PIEZAS)`) | "Piezas" en el nombre | Compacto, 2 decimales | Previous year, cambio en %, 1 decimal |
+| Precio Promedio General por Pieza | Precio Promedio | "$" en el valor y "por Pieza" en el nombre | Compacto, 2 decimales (por debajo de mil se ve igual, por encima pasa a "K") | Previous year, cambio en %, 1 decimal |
 
 Estado sin datos en el periodo de referencia: "Missing data" en "-" (R5).
 
@@ -138,17 +144,17 @@ Estado sin datos en el periodo de referencia: "Missing data" en "-" (R5).
 
 | Componente | Tipo | Dimensión | Métrica | Orden | Límite | Etiquetas | Color |
 |---|---|---|---|---|---|---|---|
-| Gasto por entidad | Bar chart horizontal | Entidad | Importe | Importe descendente | 32 barras, sin "Others" | Valor compacto | `#0072B2` |
-| Mapa de gasto por entidad | Geo chart, zoom México, con leyenda de escala | Entidad ISO | Importe | No aplica | 32 áreas | Tooltip | Escala `#DCEBF5` a `#0072B2`, "Dataless" `#F1F3F4` |
-| Participación por institución | Bar chart horizontal | Institución | Importe, Percent of total | Descendente | 7 barras, sin "Others" | % con 1 decimal | `#0072B2` |
+| Gasto por entidad | Bar chart horizontal | Entidad (abreviatura) | Importe | Importe descendente | 32 barras, sin "Others" | Valor compacto | `#0072B2` |
+| Mapa de gasto por entidad | Geo chart, zoom México, sin leyenda (R9) | Entidad ISO | Importe | No aplica | 32 áreas | Tooltip | Escala `#DCEBF5` a `#0072B2`, "Dataless" `#F1F3F4` |
+| Participación por institución | Table with bars (alternativa de R7) | Institución | Importe, Percent of total ("% del importe") | Descendente | 7 filas, sin "Others" | % con 1 decimal junto a la barra | `#0072B2` |
 | Top 10 molécula-fabricante | Table | Molécula, Fabricante | Piezas (entero con separador de miles, sin compactar), Importe (compacto, 1 decimal), Precio Promedio (2 decimales, sin compactar) | Importe descendente, después Molécula y Fabricante | Top N 10, sin "Others" | Números a la derecha | Texto `#202124` |
 
 Títulos de componentes (descriptivos, aclaración de la spec):
 
-- "Gasto por entidad, pesos (MXN)";
-- "Gasto por entidad en el mapa, pesos (MXN)";
+- "Gasto por entidad";
+- "Gasto por entidad en el mapa";
 - "Participación por institución, % del importe";
-- "Top 10 pares molécula-fabricante por importe (MXN)". Una molécula puede salir con varios fabricantes
+- "Top 10 pares molécula-fabricante por importe". Una molécula puede salir con varios fabricantes
   (en 2025, 10 filas con 6 moléculas distintas), que es la definición de "Top 10 de moléculas" del
   principio VI.
 
@@ -156,7 +162,7 @@ Alternativas registradas, que solo se aplican si la prueba en el producto las ex
 
 | Riesgo | Alternativa |
 |---|---|
-| La tarjeta no dibuja ▲▼ | Campo calculado de texto con ▲ o ▼ por tarjeta sobre `FECHA`, fuera del grupo del control de fechas y con la excepción "▲▼ comparan siempre 2025 con el periodo anterior" visible (R5) |
+| La tarjeta no dibuja ▲▼ | Campo calculado de texto con ▲ o ▼ por tarjeta sobre `FECHA`, fuera del grupo del control de fechas y con la excepción "▲▼ comparan siempre 2025 con 2024" visible (R5) |
 | Los números compactos usan "B" | Campos "Importe en millones" y "Piezas en millones" sin compactar, unidades en millones y enmienda PATCH de la constitución (R11) |
 | El gráfico de barras no admite "Percent of total" | Tabla de Institución con la columna en "Percent of total" de tipo "Bar" (R7) |
 | El botón no devuelve el rango de fechas | Botón *Navigation* que recarga el propio informe (R4) |
@@ -166,11 +172,11 @@ Alternativas registradas, que solo se aplican si la prueba en el producto las ex
 
 | Atributo | Valor |
 |---|---|
-| Título | "Hallazgos clave (2025, sin otros filtros)" |
-| Contenido | Tres conclusiones cuantificadas del estado inicial y una línea final que dice que reflejan patrones inyectados por el generador (R17) |
-| Longitud | Como máximo 5 líneas de 12 px con interlineado de 14 px, de unos 60 caracteres, bajo el título de 14 px |
-| Origen de cada cifra | Salida de `make bq-dashboard` con los filtros por defecto |
-| Advertencia | "Patrón inyectado por el generador" cuando corresponde (`docs/datos_sinteticos.md`) |
+| Título | "Hallazgos clave (según los filtros)" |
+| Contenido | Tres conclusiones con chips (institución, entidad y molécula líderes con su % del importe) que cambian con los controles. Sin texto fijo (R17) |
+| Longitud | 3 líneas de 12 px con interlineado de 16 px, una por conclusión, en un cuadro de 420 × 70 bajo un cuadro de título de 14 px de 420 × 20 |
+| Origen de cada cifra | Chips sobre la fuente, comprobados contra `make bq-dashboard` con los filtros por defecto y con Jalisco |
+| Advertencia | No va en el recuadro, porque sus líneas cambian con los filtros. Va en el documento de hallazgos (feature 006, principio VII) |
 
 ## Estados del tablero
 
@@ -178,7 +184,7 @@ Alternativas registradas, que solo se aplican si la prueba en el producto las ex
 |---|---|---|
 | Inicial | Rango 2025-01-01 a 2025-12-31, sin otros filtros | KPIs, comparación, entidades, instituciones, top 10 y hallazgos |
 | Filtrado | Rango por defecto y una entidad elegida (por ejemplo, Jalisco) | KPIs, top 10 y gasto por entidad (FR-033) |
-| Ampliado | Rango 2024-01-01 a 2025-12-31 | Totales de toda la vista y comparación en "-", porque el periodo anterior (2022-2023) no tiene datos |
+| Ampliado | Rango 2024-01-01 a 2025-12-31 | Totales de toda la vista y comparación de +109.1 %, que no es comparable porque 2023-2024 solo tiene datos de 2024. El subtítulo lo avisa |
 | Vacío | Una combinación sin filas (por ejemplo, SEMAR en una entidad donde no opera) | Estado vacío legible |
 
 ## Consultas de verificación
@@ -214,17 +220,14 @@ con 2024 sin depender del rango.
 Calculadas en local con los CSV de `data/` (R12). `make bq-dashboard` las tiene que reproducir sobre
 la vista, y son las que se comparan con el tablero.
 
-| Cifra | 2025 | 2024 | Cambio |
-|---|---|---|---|
-Las tarjetas comparan 2025 con su periodo anterior, del 2 de enero al 31 de diciembre de 2024
-(365 días, R5). La consulta por año da además 2024 completo.
+Las tarjetas comparan 2025 con las mismas fechas del año anterior, 2024 completo (R5).
 
-| Cifra | 2025 | Periodo anterior (2024-01-02 a 2024-12-31) | Cambio | 2024 completo |
-|---|---|---|---|---|
-| Importe | 14 941.7 M | 13 628.0 M | +9.6 % | 13 692.2 M |
-| Piezas | 28.55 M | 26.59 M | +7.3 % | 26.71 M |
-| Precio promedio | 523.42 | 512.44 | +2.1 % | 512.71 |
-| Filas | 153 682 | 144 173 | No aplica | 144 818 |
+| Cifra | 2025 | 2024 (año anterior) | Cambio |
+|---|---|---|---|
+| Importe | 14 941.7 M | 13 692.2 M | +9.1 % |
+| Piezas | 28.55 M | 26.71 M | +6.9 % |
+| Precio promedio | 523.42 | 512.71 | +2.1 % |
+| Filas | 153 682 | 144 818 | No aplica |
 
 | Cifra de 2025 | Valor |
 |---|---|

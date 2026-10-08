@@ -139,11 +139,12 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 - **Decision**:
   - tres tarjetas (*Scorecard*) con la métrica, "Compact numbers" y la precisión de la
     especificación;
-  - la unidad va en el nombre visible de la tarjeta o en un texto debajo: "pesos (MXN)", "piezas" y
-    "pesos (MXN) por pieza". La escala la pone el sufijo compacto (R11), así que la unidad no dice
-    "millones";
-  - *Comparison type*: Period; *Comparison date range*: Previous period; cambio en porcentaje con
-    la etiqueta "frente al periodo anterior";
+  - la moneda se declara una vez en el subtítulo ("Importes en pesos mexicanos (MXN)"), el valor
+    lleva "$" y los nombres dicen la unidad de las piezas, sin repetir la moneda en cada título
+    (decisión del dueño del 2026-10-08, ver R11). La escala la pone el sufijo compacto (R11), así
+    que la unidad no dice "millones";
+  - *Comparison type*: Period; *Comparison date range*: Previous year; cambio en porcentaje con
+    la etiqueta "frente al mismo periodo del año anterior";
   - colores de cambio: positivo `#0072B2` y negativo `#B34700` (R10), ambos con contraste de texto
     sobre blanco.
 - **Rationale**:
@@ -153,16 +154,16 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
     (`/looker/docs/studio/set-report-date-ranges`). Previous period es el mismo número de días
     inmediatamente antes del rango: en el ejemplo oficial, del 25 al 31 de diciembre de 2018 se
     compara con el 18 al 24 de diciembre;
-  - con Previous year, el rango 2024-01-01 a 2025-12-31 se compararía con 2023-01-01 a 2024-12-31,
-    que solo tiene datos de 2024, y la tarjeta mostraría un cambio del 109.1 % que no existe. Con
-    Previous period se compara con 2022-2023, que no tiene datos, y la tarjeta muestra "-" (segunda
-    ronda de análisis, decisión del dueño del 2026-10-08);
-  - con el rango por defecto, 2025 (365 días) se compara con el 2 de enero al 31 de diciembre de
-    2024. Queda fuera el 1 de enero de 2024, con 64.2 M de importe. El subtítulo lo dice, y
-    `make bq-dashboard` calcula el mismo periodo para que las cifras coincidan;
-  - la contrapartida: un trimestre se compara con el trimestre anterior y no con el mismo trimestre
-    de 2024, que tendría la misma estacionalidad. La etiqueta "frente al periodo anterior" lo deja
-    claro.
+  - Previous year compara las mismas fechas un año antes: 2025 con 2024 completo, y un trimestre
+    con el mismo trimestre del año anterior, con la misma estacionalidad. Es la comparación habitual
+    en análisis comercial;
+  - la segunda ronda de análisis eligió Previous period, pero con 2025 (365 días) y 2024 bisiesto
+    el periodo anterior iba del 2 de enero al 31 de diciembre de 2024 y dejaba fuera el 1 de enero,
+    con 64.2 M de importe. Al verlo en la tarjeta, el dueño volvió a Previous year (2026-10-08);
+  - la contrapartida: con un rango de más de un año, como 2024-01-01 a 2025-12-31, el año anterior
+    (2023-01-01 a 2024-12-31) solo tiene datos de 2024 y la tarjeta muestra +109.1 %, que no es
+    comparable. Data Studio no permite limitar la duración del rango, así que el subtítulo lo avisa;
+  - `make bq-dashboard` calcula el mismo periodo de referencia para que las cifras coincidan.
 - **Riesgo**: la documentación describe el cambio solo con color y no menciona flechas
   (`scorecard-reference`). Se verifica al construir. Los colores de cambio están separados para la
   visión con daltonismo (`#0072B2` frente a `#B34700`, ΔE 22.5 en protanopia según
@@ -171,22 +172,22 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   dueño en el análisis del 2026-10-08) es:
   - un campo calculado de texto por tarjeta en la fuente que compara los dos periodos del rango por
     defecto sobre `FECHA` (no sobre `ANIO`, que tiene tipo Year), por ejemplo para el importe
-    `CASE WHEN SUM(IF(FECHA >= DATE(2025, 1, 1), IMPORTE, 0)) >= SUM(IF(FECHA >= DATE(2024, 1, 2) AND FECHA <= DATE(2024, 12, 31), IMPORTE, 0)) THEN "▲" ELSE "▼" END`,
+    `CASE WHEN SUM(IF(FECHA >= DATE(2025, 1, 1), IMPORTE, 0)) >= SUM(IF(FECHA >= DATE(2024, 1, 1) AND FECHA <= DATE(2024, 12, 31), IMPORTE, 0)) THEN "▲" ELSE "▼" END`,
     mostrado en una tarjeta pequeña de 60 × 30 px dentro de la esquina inferior derecha de su
     tarjeta (x de la tarjeta + 290, y 220);
   - como ese campo compara periodos fijos, el control de fechas se agrupa (Arrange, Group) con los
     7 componentes de datos y las tres flechas quedan fuera del grupo, de modo que las listas
     desplegables las siguen filtrando y el rango de fechas no. Un texto de 12 px bajo las tarjetas
-    dice "▲▼ comparan siempre 2025 con el periodo anterior" como excepción visible (FR-010). Esto
+    dice "▲▼ comparan siempre 2025 con 2024" como excepción visible (FR-010). Esto
     sustituye, solo en este caso, la regla de R3 de no agrupar controles;
   - fuera del rango por defecto la flecha puede no coincidir con el % de la tarjeta, y la excepción
     visible lo advierte;
   - si Data Studio no admite agregados dentro del `CASE`, se para y se consulta al dueño antes de
     otra alternativa.
 - **Por verificar al construir**: qué muestra la comparación cuando el periodo de referencia no tiene
-  datos (se configura "Missing data" en "-" si aplica) y que el periodo anterior de 2025 es
-  exactamente 2024-01-02 a 2024-12-31 (se ve al pasar el cursor sobre la comparación o con una tabla
-  de prueba).
+  datos (se configura "Missing data" en "-" si aplica) y que el año anterior de 2025 es
+  exactamente 2024-01-01 a 2024-12-31. Comprobado el 2026-10-08: la tarjeta da +9.1 %, el cambio
+  frente a 2024 completo.
 
 ## R6. Gasto por entidad: barras horizontales
 
@@ -199,9 +200,16 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
     "empezar en cero" para un solo eje, así que el mínimo se fija en 0;
   - las barras ordenadas por valor y desde cero son la recomendación de la guía de visualización
     del Government Analysis Function del Reino Unido y de Few (R13);
-  - el nombre más largo es "Veracruz de Ignacio de la Llave" (31 caracteres), que cabe sin rotar en
-    la columna de 500 px de la rejilla con letra de 12 px (lo comprobó la maqueta).
-- **Alternatives considered**: mostrar solo las 10 primeras entidades, que ocultaría 22 (FR-016).
+  - la maqueta suponía que "Veracruz de Ignacio de la Llave" (31 caracteres) cabía sin rotar en la
+    columna de 500 px. En el producto no cabe: Data Studio reserva unas 7 letras para cada nombre,
+    sin opción para ampliarlas, aunque el gráfico sea más ancho. Por eso la dimensión es el campo
+    calculado "Entidad (abreviatura)", con las abreviaturas oficiales del INEGI (decisión del dueño
+    del 2026-10-08). El nombre completo sigue en la lista Entidad y en el mapa.
+- **Alternatives considered**:
+  - mostrar solo las 10 primeras entidades, que ocultaría 22 (FR-016);
+  - tabla con barras con el nombre completo: en 610 px solo caben 19 de las 32 filas y el resto
+    necesita desplazamiento dentro de la tabla;
+  - código ISO 3166-2 sin "MX-" ("JAL", "CMX"): se conoce menos, y "MEX" y "CMX" se confunden.
 
 ## R7. Participación por institución: porcentaje del total
 
@@ -219,6 +227,13 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   "Percent of total". Si el gráfico de barras no lo admite, la alternativa es una *Table* con
   Institución y la métrica Importe en "Percent of total" mostrada como columna de tipo "Bar"
   (`table-reference`), ordenada de mayor a menor, con el % visible y en las mismas coordenadas.
+- **Resultado al construir** (2026-10-08): se aplica la alternativa. El gráfico de barras cortaba
+  los nombres largos de las instituciones (el mismo límite de R6), y la tabla los muestra completos.
+  Además, "Percent of total" estaba bloqueado en barras y en tabla mientras "Field Editing in
+  Reports" estaba desactivado. La documentación incluye el cálculo de comparación entre las
+  ediciones de campo de un informe ([edit-fields-in-your-reports](https://docs.cloud.google.com/data-studio/edit-fields-in-your-reports)),
+  y con la opción activada el cálculo quedó disponible. El dueño aprobó activarla, y la nota sobre
+  FR-004 sigue valiendo: la fuente define nombres, tipos y agregaciones.
 
 ## R8. Top 10 molécula-fabricante: tabla
 
@@ -240,10 +255,10 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 
 - **Decision**: *Geo chart* con dimensión `ENTIDAD_ISO` (Country subdivision, 1st level), zoom en
   México, métrica Importe, escala de un solo tono (mínimo `#DCEBF5`, máximo `#0072B2`), color
-  "Dataless" `#F1F3F4`, leyenda de escala visible y cross-filtering activo. La leyenda y la escala
-  continua cumplen el principio VI desde la v1.4.3: en un mapa no caben etiquetas directas en cada
-  entidad, la escala codifica el importe y no decora, y el valor exacto está en el tooltip y en las
-  barras de entidades (decisión del dueño del 2026-10-08).
+  "Dataless" `#F1F3F4` y cross-filtering activo. La escala continua cumple el principio VI desde la
+  v1.4.3, porque codifica el importe y no decora. La leyenda se planeó, pero en el producto solo
+  aparecía con algunos filtros. El dueño decidió quitarla (2026-10-08): el valor exacto está en el
+  tooltip y en las barras de entidades.
 - **Rationale**:
   - la subdivisión de primer nivel acepta ISO 3166-2 o el nombre, con zoom de país, y México no está
     entre los países excluidos (`/looker/docs/studio/geo-dimension-reference`,
@@ -259,6 +274,8 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
      subdivision, porque `MX-DIF` es el código anterior a 2016 que algunos catálogos conservan;
   3. Google Maps (área rellena) con `ENTIDAD_ISO` (`google-maps-reference`).
   Cambiar la vista queda como último recurso y exigiría sus chequeos (principio IV).
+  Resultado (2026-10-08): la opción 1 funciona. Con solo Ciudad de México elegida, el mapa la pinta
+  con el importe de la consulta.
 - **Contraste**: el mínimo de la escala no llega a 3:1 sobre blanco. Lo admite la excepción de WCAG
   1.4.11 porque el mismo dato aparece como texto en las barras de entidades. Los bordes entre
   entidades los dibuja el gráfico.
@@ -314,9 +331,15 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 
 - **Decision** (segunda ronda de análisis, decisión del dueño del 2026-10-08): números compactos
   en las tarjetas y en las etiquetas de las barras, como pide el principio VI, con unidades que no
-  repiten la escala: "pesos (MXN)", "piezas" y "pesos (MXN) por pieza". El sufijo compacto ("K",
+  repiten la escala. El sufijo compacto ("K",
   "M" o el que use Data Studio en español) pone la escala. Separador de miles "," y punto decimal
   ".", como se usa en México.
+- **Dónde va la moneda** (decisión del dueño del 2026-10-08): una sola vez en el subtítulo,
+  "Importes en pesos mexicanos (MXN)", y no en cada título. La ONS pide que el subtítulo diga la
+  medida, la cobertura y el periodo, sin repetir lo que dice el título, y que el símbolo de la
+  moneda vaya junto a la cifra ([ONS, texto de los gráficos](https://service-manual.ons.gov.uk/data-visualisation/guidance/chart-text)).
+  La guía de data.europa.eu deja las unidades fuera del título ([data.europa.eu](https://data.europa.eu/apps/data-visualisation-guide/guidelines-for-visualisation-titles)).
+  Como todo el tablero usa una sola moneda y no cambia con los filtros, basta con declararla una vez.
 - **Riesgo**: la documentación no dice qué sufijos usan los números compactos según el idioma. En
   inglés, mil millones es "B" (14 941.7 M se vería "14.9B"), que en español se confunde con
   "billón" (10^12). Se verifica en la tarea de las tarjetas. Si aparece "B", se para y se aplica la
@@ -344,8 +367,8 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   - un subcomando `python -m warehouse dashboard` y un objetivo `make bq-dashboard`, con variables
     opcionales `DESDE`, `HASTA`, `ENTIDAD`, `INSTITUCION`, `GRUPO_INSTITUCIONAL`,
     `GRUPO_TERAPEUTICO` y `MOLECULA` (listas separadas por comas);
-  - el programa calcula el periodo de referencia igual que *Previous period* de Data Studio (los
-    mismos días inmediatamente antes, R5), ejecuta `kpis.sql`
+  - el programa calcula el periodo de referencia igual que *Previous year* de Data Studio (las
+    mismas fechas un año antes, R5), ejecuta `kpis.sql`
     dos veces y las demás una vez, cada una con dry run previo, labels y el límite de
     `.bigqueryrc`, imprime las cifras con el formato del tablero y comprueba cuatro cifras cruzadas
     (D1 a D4, [contracts/verificacion-sql.md](contracts/verificacion-sql.md)).
@@ -436,23 +459,36 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 
 ## R17. Contenido del recuadro de hallazgos
 
-- **Decision**: tres conclusiones del estado inicial (2025, sin otros filtros). Cada cifra sale de
-  la salida de `make bq-dashboard` (institución, entidad y top 10), y cada conclusión que refleja un
-  patrón del generador lo dice (`docs/datos_sinteticos.md`: concentración por institución, por
-  entidad y por molécula, y P5). Las tres lo reflejan, así que el recuadro termina con una línea
-  que lo advierte. El borrador:
-  - "El IMSS compra el 38.7 % del importe.";
-  - "Insulina glargina: Serrato Castro la vende a 1 413 pesos por pieza y Tamayo a 694." (filas 1 y
-    6 del top 10);
-  - "El estado de México lidera las entidades con el 11.6 %.";
-  - "Las tres reflejan patrones que el generador inyecta a propósito.".
-- **Longitud**: el recuadro mide 420 × 100 px. Con el título en 14 px y el texto en 12 px con
-  interlineado de 14 px caben unas 5 líneas de 12 px de unos 60 caracteres. El texto literal se fija
-  en `docs/dashboard.md` con esa medida y se comprueba en la captura. Si no cabe, se acorta el texto
-  y no se reduce la letra.
-- **Rationale**: aclaración de la spec (títulos descriptivos más recuadro) y principio VII (cifras
-  que coinciden con el SQL). Los dos hallazgos del documento de entrega son de la feature 006 y
-  pueden reutilizar estos.
+- **Decision** (decisión del dueño del 2026-10-08): el recuadro "Hallazgos clave (según los
+  filtros)" usa variables de resultados de consultas (chips) para que sus cifras sigan a los
+  controles:
+  - "[institución] compra el [%] del importe.";
+  - "Entidad líder: [entidad], con el [%] del importe.";
+  - "Molécula líder: [molécula], con el [%] del importe.".
+  El recuadro no lleva texto fijo. Una línea que avisara de los patrones del generador hablaría
+  siempre del estado sin filtros, aunque las demás cambien (decisión del dueño del 2026-10-08).
+  El aviso va en el documento de hallazgos de la feature 006 (principio VII).
+- **Rationale**:
+  - un texto fijo sigue describiendo el estado para el que se escribió aunque el lector filtre.
+    Las guías piden decir el alcance junto al texto o, mejor, generar el comentario desde los
+    datos filtrados ([Incorta](https://docs.incorta.com/6.0/concepts-insight-filter),
+    [comunidad de Power BI](https://community.fabric.microsoft.com/t5/Desktop/Dynamic-text-box-based-on-filters/m-p/2475443));
+  - Data Studio tiene chips desde 2025
+    ([query-result-variables](https://docs.cloud.google.com/looker/docs/studio/query-result-variables)).
+    La documentación no dice si los controles los filtran, y la prueba en el producto confirmó
+    que sí (con Jalisco, la institución líder pasa a Servicios Estatales de Salud, 39,4 %);
+  - un chip devuelve una métrica, y admite "Porcentaje respecto al total", así que las frases
+    conservan el porcentaje.
+- **Alternatives considered**:
+  - texto fijo con "(2025, sin otros filtros)": cumplía la constitución, pero el dueño prefirió
+    que el recuadro no se quedara atrás al filtrar;
+  - el hallazgo de precios de la insulina glargina (Serrato Castro 1,413 y Tamayo 694 pesos por
+    pieza) compara dos filas fijas y no tiene versión dinámica. Se sustituye por la molécula
+    líder, y la diferencia de precios queda en la tabla del top 10 y para el documento de la
+    feature 006.
+- **Longitud**: título de 14 px en un cuadro de 420 × 20 y tres líneas de 12 px con
+  interlineado de 16 px en otro de 420 × 70. Con los nombres más largos posibles la línea más
+  larga mide 386 px de los 404 px útiles.
 
 ## R18. README y matriz de trazabilidad
 

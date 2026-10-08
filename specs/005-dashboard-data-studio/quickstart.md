@@ -44,7 +44,7 @@ make bq-dashboard
 Esperado: 7 consultas (1 de totales, 2 de KPIs y 4 más) con dry run, y D1 a D4 sin diferencias.
 Las cifras coinciden con
 [data-model.md](data-model.md#cifras-esperadas-del-estado-inicial): periodo de referencia del
-2024-01-02 al 2024-12-31, importe de 2025 de 14 941.7 M (+9.6 %), 28.55 M de piezas (+7.3 %),
+2024-01-01 al 2024-12-31, importe de 2025 de 14 941.7 M (+9.1 %), 28.55 M de piezas (+6.9 %),
 precio de 523.42 (+2.1 %), México en primer lugar con 1 731 M e IMSS con el 38.71 %.
 
 ## V2. Cifras de un estado filtrado (dueño)
@@ -64,7 +64,8 @@ Cada paso termina con una captura que se compara con `docs/dashboard.md`. Los pa
 1. Crear la fuente reutilizable desde la página de inicio de Data Studio con el conector de
    BigQuery y la vista (confirmación: autorizar el conector y aceptar avisos, si aparecen).
 2. Revisar que las credenciales son *Owner's credentials* (confirmación si hay que cambiarlas),
-   fijar la frescura en 12 horas y desactivar "Field Editing in Reports".
+   fijar la frescura en 12 horas y activar "Field Editing in Reports", que el "Percent of total" de
+   la tabla de instituciones necesita (R7).
 3. Configurar los 22 campos y crear el campo calculado Precio Promedio. Probar `NULLIF` y la moneda
    MXN (R2).
 4. Crear el informe con la fuente, fijar el lienzo de 1600 × 900, la rejilla de 10 px y el tema
@@ -94,8 +95,8 @@ Cada paso termina con una captura que se compara con `docs/dashboard.md`. Los pa
 - El botón Restablecer filtros devuelve el estado inicial, incluido el rango 2025 (o queda
   documentado lo contrario, R4).
 - Con el rango 2024-01-01 a 2025-12-31, las tarjetas muestran el equivalente de 28 633.9 millones
-  de pesos y 55.25 millones de piezas con su sufijo compacto, y la comparación muestra "-", porque
-  el periodo anterior (2022-2023) no tiene datos.
+  de pesos y 55.25 millones de piezas con su sufijo compacto, y la comparación muestra +109.1 %,
+  que no es comparable porque 2023-2024 solo tiene datos de 2024. El subtítulo lo avisa.
 - Con el rango 2023-01-01 a 2023-12-31, las tarjetas muestran "-" y ninguna cifra inventada.
 - Con la ventana a 1366 px de ancho, las etiquetas de las 32 entidades se leen.
 

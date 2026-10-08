@@ -1,4 +1,5 @@
-"""Orchestration of the schema, vista, load, checks, checks-negativos and consultas commands."""
+"""Orchestration of the schema, vista, load, checks, checks-negativos, consultas and dashboard
+commands."""
 
 from __future__ import annotations
 
@@ -7,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 from generator.manifest import verify as verify_csv
-from warehouse import bq, checks, metadata, queries
+from warehouse import bq, checks, dashboard, metadata, queries
 from warehouse.ddl import Ddl, DdlError, parse_file, write_load_schemas
 from warehouse.expectations import MANIFEST_PATH, Parameter, load_expectations
 from warehouse.results import format_table
@@ -203,3 +204,35 @@ def run_queries() -> int:
         return 1
     print("Cifras cruzadas: 5 de 5 cuadran.")
     return 0
+
+
+def run_dashboard(filters: dashboard.Filters) -> int:
+    """Figures the dashboard must show with these filters, and their cross figures."""
+    try:
+        bq.check_environment()
+    except bq.BqEnvironmentError as exc:
+        print(exc, file=sys.stderr)
+        return 2
+    try:
+        exists = metadata.object_exists(checks.VIEW_REF)
+    except metadata.MetadataError as exc:
+        print(exc)
+        return 1
+    if not exists:
+        print(f"Falta {checks.VIEW_REF}: ejecuta 'make bq-vista'")
+        return 1
+    totals = queries.view_totals()
+    if isinstance(totals, str):
+        print(totals)
+        return 1
+    figures = dashboard.run(filters)
+    if isinstance(figures, str):
+        print(figures)
+        return 1
+    print(dashboard.format_figures(figures))
+    print()
+    diffs = dashboard.cross_figures(figures)
+    if diffs:
+        print(format_table(diffs))
+    print(dashboard.summary(figures, diffs))
+    return 1 if diffs else 0

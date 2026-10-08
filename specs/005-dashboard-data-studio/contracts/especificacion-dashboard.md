@@ -32,7 +32,7 @@ están permitidas. Su contenido sale de [data-model.md](../data-model.md) y de
    origen de cada cifra.
 10. **Comportamientos comprobados en el producto.** Una tabla con lo que la documentación no
     aclaraba y el resultado observado: moneda MXN, `NULLIF` sobre agregados, flechas de la tarjeta,
-    comparación sin datos, fechas exactas del periodo anterior, Reset y el rango de fechas, sufijos de los
+    comparación sin datos, fechas exactas del año anterior, Reset y el rango de fechas, sufijos de los
     números compactos, fuente Roboto y `MX-CMX` en el mapa (con la alternativa aplicada si la hubo).
 11. **Verificación contra el SQL.** El comando `make bq-dashboard` con sus variables y el registro de
     verificación (estado, componente, valor del tablero, valor del SQL, resultado) para el estado

@@ -76,9 +76,9 @@ make bq-dashboard [DESDE=AAAA-MM-DD] [HASTA=AAAA-MM-DD] [ENTIDAD=a,b] [INSTITUCI
 2. Comprueba, como `make bq-consultas`, que la vista existe y tiene filas. Si no existe, se detiene
    con "Falta farma_analytics.v_compras_farma_completa: ejecuta 'make bq-vista'". Si no tiene filas,
    con "La vista no tiene filas: ejecuta 'make bq-load'". En los dos casos termina con código 1.
-3. Calcula el periodo de referencia igual que *Previous period* de Data Studio: el mismo número de
-   días, terminando el día anterior a `--desde`. Por ejemplo, 2025-01-01 a 2025-12-31 (365 días) da
-   2024-01-02 a 2024-12-31, y 2024-03-01 a 2024-03-31 da 2024-01-30 a 2024-02-29.
+3. Calcula el periodo de referencia igual que *Previous year* de Data Studio: las mismas fechas un
+   año antes, con el 29 de febrero como 28 de febrero. Por ejemplo, 2025-01-01 a 2025-12-31 da
+   2024-01-01 a 2024-12-31, y 2025-03-01 a 2025-03-31 da 2024-03-01 a 2024-03-31.
 4. Ejecuta, cada una con dry run antes y con las labels de `BQ_JOB_LABELS`:
    - `kpis.sql` con el periodo pedido y con el de referencia;
    - `kpis_por_anio.sql`, `gasto_entidad.sql`, `participacion_institucion.sql` y
@@ -102,7 +102,8 @@ make bq-dashboard [DESDE=AAAA-MM-DD] [HASTA=AAAA-MM-DD] [ENTIDAD=a,b] [INSTITUCI
    - **D3**: cuando el periodo pedido es un año natural completo, el importe y las piezas de
      `kpis.sql` son iguales a los de ese año en `kpis_por_anio.sql`. Un año sin filas cuenta como 0
      en los dos lados (`kpis.sql` devuelve NULL y `kpis_por_anio.sql` no devuelve la fila). El
-     periodo de referencia no se compara, porque con *Previous period* no es un año natural;
+     periodo de referencia es entonces el año natural anterior, y su importe y sus piezas se
+     comparan igual con ese año en `kpis_por_anio.sql`;
    - **D4**: el importe del top 10 no supera el importe de `kpis.sql`, y sus filas están ordenadas
      de mayor a menor.
 7. Termina con código 0 si todo cuadra.
