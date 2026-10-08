@@ -4,6 +4,3 @@
 
 # Spec Kit
 # .specify/ is versioned; machine-local state is ignored by .specify/.gitignore
-
-# Confidential reference files (not for distribution)
-docs/**/*-confidencial*

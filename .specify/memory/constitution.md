@@ -1,16 +1,17 @@
 # Constitución de Farma Analytics BigQuery
 
-> Prueba técnica de Analista de Datos & BI: compras públicas de medicamentos en México, modeladas
+> Proyecto de análisis de datos y BI: compras públicas de medicamentos en México, modeladas
 > en Google BigQuery y visualizadas en Data Studio (antes Looker Studio).
 > Las palabras MUST, MUST NOT, SHOULD y MAY se usan según RFC 2119 y se dejan en inglés para que las
 > puertas de Spec Kit no sean ambiguas. Cada regla se puede verificar.
 
 ## Principios Fundamentales (Core Principles)
 
-### I. Fidelidad al Contrato de la Prueba Técnica (NO NEGOCIABLE)
+### I. Fidelidad al Contrato de Requisitos del Proyecto (NO NEGOCIABLE)
 
-El documento `docs/technical-test-confidencial.pdf` es el contrato. Cada artefacto existe para
-cumplir un requisito o un criterio de evaluación de ese documento.
+El documento de requisitos del proyecto es el contrato. Es material de referencia local y no se
+versiona. Cada artefacto existe para cumplir un requisito o un criterio de aceptación de ese
+documento.
 
 - Los nombres impuestos MUST usarse exactamente, con las mismas mayúsculas, porque BigQuery
   distingue mayúsculas en los nombres de tabla:
@@ -20,29 +21,29 @@ cumplir un requisito o un criterio de evaluación de ese documento.
 - Ninguna herramienta MAY añadir prefijos o sufijos ni cambiar las mayúsculas. Por ejemplo,
   `schemaSuffix`, `tablePrefix` y `namePrefix` de Dataform quedan prohibidos en el entorno
   entregable.
-- Cada tabla MUST contener exactamente los campos que lista la prueba, con esos mismos nombres.
+- Cada tabla MUST contener exactamente los campos que listan los requisitos, con esos mismos nombres.
 - La vista MUST unir `COMPRAS` con `CLUE_CAT` (vía `CLUE`) y con `CUADRO_BASICO` (vía `CLAVE`)
   mediante `INNER JOIN`.
 - Las consultas analíticas MUST responder las tres preguntas comerciales:
   - las 5 moléculas con más `IMPORTE`;
   - la institución y la entidad con mayor volumen de compra;
   - el precio promedio por pieza (`SUM(IMPORTE) / SUM(PIEZAS)`) por molécula y fabricante.
-- El dashboard MUST implementar todos los controles, KPIs y visualizaciones de la Fase 3.
+- El dashboard MUST implementar todos los controles, KPIs y visualizaciones de la Fase 3 de los requisitos.
 - Los cuatro entregables MUST existir:
   1. el archivo `.sql` con la DDL, la vista y las consultas;
   2. un enlace al dashboard con permiso de lectura;
   3. un documento con 2 hallazgos comerciales clave;
   4. un video de pantalla que explique todos los pasos.
-- Las ambigüedades de la prueba MUST resolverse con una definición explícita y documentada. Por
+- Las ambigüedades de los requisitos MUST resolverse con una definición explícita y documentada. Por
   ejemplo: si "volumen de compra" significa `IMPORTE` o `PIEZAS`; qué `FABRICANTE` se usa; si
   "institución y estado" se evalúa en combinación o por separado. Cuando sea barato, SHOULD
   presentarse ambas interpretaciones.
 - MUST existir una matriz de trazabilidad (`docs/trazabilidad.md`) que relacione cada requisito o
   criterio con su artefacto y su verificación. Su cobertura MUST ser del 100 % antes de entregar.
 
-**Justificación**: la evaluación es una rúbrica cerrada: SQL & BigQuery 40 %, Modelado 20 %,
-Dashboard 30 %, Visión comercial 10 %. Cualquier desviación del contrato resta puntos, aunque la
-solución alternativa sea técnicamente mejor.
+**Justificación**: los criterios de aceptación son cerrados y ponderados: SQL & BigQuery 40 %,
+Modelado 20 %, Dashboard 30 %, Visión comercial 10 %. Cualquier desviación del contrato reduce el
+cumplimiento de esos criterios, aunque la solución alternativa sea técnicamente mejor.
 
 ### II. GoogleSQL Ejemplar y Tipado Estricto (NO NEGOCIABLE)
 
@@ -221,8 +222,8 @@ violaciones, dry run sin errores y revisión contra esta lista.
   - Toda expresión calculada MUST llevar alias explícito.
   - Se prefieren los alias en el `SELECT` a `view_column_name_list`. Si se usa la lista, debe tener
     exactamente tantos nombres como columnas devuelve la consulta.
-- La vista MUST conservar los nombres de columna de la prueba (UPPER_SNAKE_CASE) para que se tracen
-  1:1 con el enunciado y con el dashboard. Las columnas derivadas o desambiguadas siguen la misma
+- La vista MUST conservar los nombres de columna de los requisitos (UPPER_SNAKE_CASE) para que se
+  tracen 1:1 con los requisitos y con el dashboard. Las columnas derivadas o desambiguadas siguen la misma
   convención con un sufijo semántico, por ejemplo `FABRICANTE_COMPRA` y `FABRICANTE_CATALOGO`.
 - La vista y cada una de sus columnas MUST tener descripción (`OPTIONS(description = ...)`). Las
   referencias internas MUST calificarse con el dataset y MUST NOT fijar el ID de proyecto.
@@ -311,7 +312,7 @@ se pueden defender.
 
 ### VI. Dashboard Claro, Honesto e Interactivo
 
-El dashboard vale el 30 % de la nota: "claridad visual, usabilidad, correcta aplicación de filtros y
+El dashboard pesa el 30 % de los criterios de aceptación: "claridad visual, usabilidad, correcta aplicación de filtros y
 elección adecuada de gráficos". Aplica las prácticas oficiales de Data Studio (Looker Studio se
 renombró como Data Studio en abril de 2026) y la teoría de visualización de Tufte, Few,
 Cleveland & McGill y Knaflic, junto con WCAG 2.1.
@@ -412,7 +413,7 @@ permisos de lectura explícitos. MUST comprobarse en una ventana de incógnito s
 
 ### VIII. Simplicidad, Reproducibilidad y Seguridad
 
-- YAGNI: se usa el mínimo de herramientas que cumple la prueba. Cualquier componente extra MUST
+- YAGNI: se usa el mínimo de herramientas que cumple los requisitos. Cualquier componente extra MUST
   justificarse en *Complexity Tracking*: Terraform, dbt, Composer, un repositorio Dataform en GCP,
   vistas materializadas, BI Engine, particionado o clustering.
 - Todo es código versionado:
@@ -427,7 +428,7 @@ permisos de lectura explícitos. MUST comprobarse en una ventana de incógnito s
   - claves de cuenta de servicio, archivos `.env` y credenciales MUST NOT versionarse; solo se
     versiona `.env.example`;
   - el ID de proyecto se toma de la configuración y nunca va fijo en el código;
-  - el PDF confidencial de la prueba MUST NOT versionarse, publicarse ni reproducirse literalmente.
+  - el documento de requisitos MUST NOT versionarse, publicarse ni reproducirse literalmente.
 
 ### IX. Escritura Humana en la Documentación
 
@@ -625,14 +626,14 @@ las marcas que delatan texto generado por IA.
 
 **Convenciones de nombres**
 
-- Los objetos impuestos se nombran exactamente como en la prueba.
+- Los objetos impuestos se nombran exactamente como en los requisitos.
 - Las columnas de origen y de la vista van en UPPER_SNAKE_CASE.
 - Los alias de tabla van en snake_case semántico.
 - Los objetos auxiliares van en snake_case con prefijo:
   - `v_` para vistas;
   - `stg_` para staging;
   - `farma_analytics_<propósito>` para datasets auxiliares.
-- El prefijo de vistas es `v_` porque lo impone la prueba. El prefijo `vw_` es una convención de un
+- El prefijo de vistas es `v_` porque lo imponen los requisitos. El prefijo `vw_` es una convención de un
   lab de Google Skills, no de la documentación oficial, y no se usa. La documentación solo exige
   nombres únicos en el dataset y sensibles a mayúsculas.
 - `.sqlfluff` MUST reflejar estas convenciones; por ejemplo, ajustando la regla de capitalización
@@ -651,7 +652,7 @@ las marcas que delatan texto generado por IA.
     MAY aplicarse solo a datasets auxiliares o temporales (por ejemplo,
     `farma_analytics_assertions`).
   - MUST NOT aplicarse a `farma_analytics`, porque el dashboard debe seguir disponible durante la
-    evaluación.
+    revisión.
   - Una tabla que expira se elimina con todos sus datos, aunque puede recuperarse dentro de la
     ventana de *time travel*. Una vista que expira se elimina y no se restaura directamente.
   - `expiration_timestamp` se evalúa al ejecutar la DDL, y `CREATE OR REPLACE` lo vuelve a
@@ -683,7 +684,7 @@ las marcas que delatan texto generado por IA.
 
 - Todos los jobs usan dry run, y el límite `--maximum_bytes_billed` viene de `.bigqueryrc`.
 - Si se usa el sandbox, MUST documentarse que tablas y vistas expiran a los 60 días, y MUST
-  garantizarse que sigan disponibles durante la ventana de evaluación.
+  garantizarse que sigan disponibles durante la ventana de revisión.
 - SHOULD preferirse un proyecto con facturación con estos controles:
   - una alerta de presupuesto, que avisa pero no detiene el gasto;
   - una cuota diaria de consultas a nivel de proyecto, que es un tope duro.
@@ -698,7 +699,7 @@ las marcas que delatan texto generado por IA.
 
 - Flujo de Spec Kit: `/speckit-specify` → `/speckit-clarify` → `/speckit-plan` → `/speckit-tasks` →
   `/speckit-analyze` → `/speckit-implement`.
-- Las features SHOULD seguir las fases de la prueba: datos sintéticos, carga, SQL y modelado,
+- Las features SHOULD seguir las fases de los requisitos: datos sintéticos, carga, SQL y modelado,
   dashboard y entrega.
 
 **Constitution Check**: son las puertas de `/speckit-plan`. Se revisan antes de la investigación y
@@ -735,7 +736,7 @@ otra vez después del diseño.
 **Git**
 
 - Conventional Commits, cambios pequeños y una rama por feature. Los commits MUST NOT contener
-  secretos ni el PDF confidencial.
+  secretos ni el documento de requisitos.
 - Todo cambio MUST entrar a `main` mediante un pull request. Los commits y push directos a `main`
   están prohibidos, incluso para cambios de documentación o de gobernanza.
 - Los PR MUST integrarse con squash merge, de modo que cada PR queda como un único commit en `main`
@@ -809,9 +810,9 @@ documentación oficial el 2026-10-07.
 ## Gobernanza (Governance)
 
 - **Jerarquía**:
-  - el PDF de la prueba define el QUÉ y prevalece sobre todo;
+  - el documento de requisitos define el QUÉ y prevalece sobre todo;
   - esta constitución define el CÓMO y prevalece sobre specs, planes y tareas;
-  - si la constitución contradice la prueba, se enmienda la constitución.
+  - si la constitución contradice los requisitos, se enmienda la constitución.
 - **Enmiendas**: solo se hacen con `/speckit-constitution`, e incluyen un Sync Impact Report, la
   razón del cambio y la fecha de `Last Amended` actualizada.
 - **Versionado** (SemVer):
@@ -842,4 +843,4 @@ documentación oficial el 2026-10-07.
     - Alonso Simón et al. (UCM, RAEL 2025) sobre rasgos de GPT en español;
     - el *Diccionario panhispánico de dudas*.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.2.1 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
