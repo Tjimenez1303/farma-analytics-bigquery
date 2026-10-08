@@ -19,7 +19,7 @@ _ESTIMATED_BYTES = re.compile(r"will process (\d+) bytes")
 
 
 class BqEnvironmentError(Exception):
-    """Invalid environment for bq; the CLI maps it to exit code 2."""
+    """Invalid environment for bq. The CLI maps it to exit code 2."""
 
 
 @dataclass(frozen=True)
@@ -84,18 +84,14 @@ def _base(as_json: bool = False) -> list[str]:
 
 
 def dry_run_query(sql: str, params: Sequence[str] = ()) -> Command:
-    """Dry run of a query job; the SQL goes on stdin so leading comments are not read as flags."""
+    """Dry run of a query job. The SQL goes on stdin so leading comments are not read as flags."""
     return Command((*_base(), "query", "--dry_run", *params), stdin=sql)
 
 
 def run_query(
-    sql: str,
-    params: Sequence[str] = (),
-    *,
-    as_json: bool = False,
-    max_rows: int | None = None,
+    sql: str, params: Sequence[str] = (), *, as_json: bool = False, max_rows: int | None = None
 ) -> Command:
-    """Labeled query job; dialect, location and byte limit come from .bigqueryrc."""
+    """Labeled query job. Dialect, location and byte limit come from .bigqueryrc."""
     argv = [*_base(as_json), "query", *job_labels()]
     if max_rows is not None:
         argv.append(f"--max_rows={max_rows}")
@@ -133,7 +129,7 @@ def estimated_bytes(output: str) -> int | None:
 
 
 def execute(command: Command) -> BqResult:
-    """Run bq without a shell; the only subprocess call of the package."""
+    """Run bq without a shell. It is the only subprocess call of the package."""
     try:
         proc = subprocess.run(
             list(command.argv),

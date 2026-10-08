@@ -14,6 +14,9 @@ from warehouse.bq import REPO_ROOT
 
 DDL_PATH = REPO_ROOT / "sql" / "farma_analytics.sql"
 
+# Types of the view columns that are expressions, which the DDL cannot give.
+DERIVED_TYPES = {"ANIO": "INT64", "MES": "DATE", "ENTIDAD_ISO": "STRING"}
+
 _ESCAPES = {"\\\\": "\\", "\\'": "'", '\\"': '"', "\\n": "\n", "\\t": "\t"}
 _ESCAPE = re.compile(r"\\[\\'\"nt]")
 _COMMENT_OR_STRING = re.compile(
@@ -27,10 +30,10 @@ class DdlError(Exception):
 
 @dataclass(frozen=True)
 class Statement:
-    kind: str  # create_schema, create_table or other
+    kind: str  # create_schema, create_table, create_view, query or other
     text: str  # statement without the terminating semicolon
     line: int
-    target: str  # dataset or table reference; empty for other statements
+    target: str  # dataset or table reference, empty for other statements
 
 
 @dataclass(frozen=True)
@@ -54,6 +57,19 @@ class TableSpec:
 
 
 @dataclass(frozen=True)
+class ViewSpec:
+    dataset: str
+    name: str
+    description: str
+    query: str
+    columns: tuple[ColumnSpec, ...]
+
+    @property
+    def ref(self) -> str:
+        return f"{self.dataset}.{self.name}"
+
+
+@dataclass(frozen=True)
 class DatasetSpec:
     name: str
     location: str
@@ -66,6 +82,7 @@ class Ddl:
     statements: tuple[Statement, ...]
     dataset: DatasetSpec
     tables: tuple[TableSpec, ...]
+    view: ViewSpec | None = None
 
 
 def unquote(literal: str) -> str:
@@ -106,8 +123,18 @@ def _options(segment) -> dict[str, object]:
 
 
 def _string_option(options: dict[str, object], name: str) -> str:
+    """A string literal, or CONCAT of string literals to keep long texts under 100 columns."""
     value = options.get(name)
-    return unquote(value.raw) if value is not None else ""
+    if value is None:
+        return ""
+    if value.type != "function":
+        return unquote(value.raw)
+    leaves = [s for s in value.get_raw_segments() if s.is_code]
+    literals = [s for s in leaves if s.is_type("quoted_literal")]
+    others = [s.raw for s in leaves if not s.is_type("quoted_literal")]
+    if others[:2] != ["CONCAT", "("] or any(raw not in {",", ")"} for raw in others[2:]):
+        raise DdlError(f"{name} debe ser una cadena o CONCAT de cadenas: {value.raw}")
+    return "".join(unquote(s.raw) for s in literals)
 
 
 def _labels(options: dict[str, object]) -> dict[str, str]:
@@ -134,12 +161,99 @@ def _column(definition) -> ColumnSpec:
     )
 
 
+def output_name(element) -> tuple[str, object | None]:
+    """Output name of a SELECT element and its column reference, if it is a bare column."""
+    parts = [s for s in _code(element.segments)]
+    alias = next((s for s in parts if s.type == "alias_expression"), None)
+    reference = parts[0] if parts[0].type == "column_reference" else None
+    if alias is not None:
+        name = next(s for s in _code(alias.segments) if s.type == "identifier").raw
+    elif reference is not None:
+        name = reference.raw.rpartition(".")[2]
+    else:
+        name = ""
+    return name, reference
+
+
+def output_columns(sql: str) -> list[str]:
+    """Output column names of a query, in the order of its final SELECT."""
+    tree = _parse(sql, "<consulta>")
+    node = next(tree.recursive_crawl("statement", recurse_into=False)).segments[0]
+    while node.type != "select_statement":
+        node = [s for s in _code(node.segments) if s.type in (*_QUERY_TYPES, "bracketed")][-1]
+    clause = next(node.recursive_crawl("select_clause"))
+    return [output_name(e)[0] for e in clause.segments if e.type == "select_clause_element"]
+
+
+def _aliases(select) -> dict[str, str]:
+    """Table alias -> table reference of the FROM and JOIN clauses."""
+    aliases: dict[str, str] = {}
+    for element in select.recursive_crawl("from_expression_element"):
+        ref = next(element.recursive_crawl("table_reference")).raw
+        alias = next(element.recursive_crawl("alias_expression"), None)
+        name = ref if alias is None else next(alias.recursive_crawl("identifier")).raw
+        aliases[name] = ref
+    return aliases
+
+
+def _view(body, tables: list[TableSpec], source: str) -> ViewSpec:
+    ref = next(body.recursive_crawl("table_reference")).raw
+    dataset_name, _, view_name = ref.rpartition(".")
+    bracketed = _child(body, "bracketed")
+    listed = (
+        []
+        if bracketed is None
+        else [s for s in bracketed.segments if s.type == "column_definition"]
+    )
+    select = next(s for s in _code(body.segments) if s.type in _QUERY_TYPES)
+    clause = next(select.recursive_crawl("select_clause"))
+    elements = [s for s in clause.segments if s.type == "select_clause_element"]
+    if len(listed) != len(elements):
+        raise DdlError(
+            f"{source}: la vista {ref} lista {len(listed)} columnas y su SELECT devuelve "
+            f"{len(elements)}"
+        )
+    by_ref = {t.ref: t for t in tables}
+    aliases = _aliases(select)
+    columns: list[ColumnSpec] = []
+    for position, (definition, element) in enumerate(zip(listed, elements, strict=True), 1):
+        parts = {s.type: s for s in _code(definition.segments)}
+        name = parts["identifier"].raw
+        output, reference = output_name(element)
+        if output != name:
+            raise DdlError(
+                f"{source}: en la vista {ref}, la posición {position} de la lista es {name} "
+                f"y el SELECT devuelve {output or 'una expresión sin alias'}"
+            )
+        if reference is not None:
+            alias, _, column = reference.raw.rpartition(".")
+            table = by_ref[aliases[alias]]
+            col_type = next(c.type for c in table.columns if c.name == column)
+        elif name in DERIVED_TYPES:
+            col_type = DERIVED_TYPES[name]
+        else:
+            raise DdlError(f"{source}: la columna calculada {name} no tiene tipo en DERIVED_TYPES")
+        description = _string_option(_options(parts.get("options_segment")), "description")
+        columns.append(ColumnSpec(name, col_type, "NULLABLE", description))
+    return ViewSpec(
+        dataset=dataset_name,
+        name=view_name,
+        description=_string_option(_options(_child(body, "options_segment")), "description"),
+        query=select.raw,
+        columns=tuple(columns),
+    )
+
+
+_QUERY_TYPES = ("select_statement", "with_compound_statement", "set_expression")
+
+
 def parse_sql(sql: str, source: str = "<sql>") -> Ddl:
     """Statements in order plus the dataset and table specs of the DDL."""
     tree = _parse(sql, source)
     statements: list[Statement] = []
     dataset: DatasetSpec | None = None
     tables: list[TableSpec] = []
+    view: ViewSpec | None = None
     for statement in tree.recursive_crawl("statement", recurse_into=False):
         body = statement.segments[0]
         line = statement.pos_marker.line_no
@@ -167,11 +281,16 @@ def parse_sql(sql: str, source: str = "<sql>") -> Ddl:
                 )
             )
             statements.append(Statement("create_table", statement.raw, line, ref))
+        elif body.type == "create_view_statement":
+            view = _view(body, tables, source)
+            statements.append(Statement("create_view", statement.raw, line, view.ref))
+        elif body.type in _QUERY_TYPES:
+            statements.append(Statement("query", statement.raw, line, ""))
         else:
             statements.append(Statement("other", statement.raw, line, ""))
     if dataset is None:
         raise DdlError(f"{source}: falta la sentencia CREATE SCHEMA")
-    return Ddl(tuple(statements), dataset, tuple(tables))
+    return Ddl(tuple(statements), dataset, tuple(tables), view)
 
 
 def parse_file(path: Path = DDL_PATH) -> Ddl:

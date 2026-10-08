@@ -21,5 +21,26 @@ CREATE TABLE IF NOT EXISTS ejemplo.DOS (
 )
 OPTIONS (description = 'Tabla dos.');
 
+-- View over both tables.
+CREATE OR REPLACE VIEW ejemplo.v_ejemplo (
+    ID OPTIONS (description = 'Llave de UNO.'),
+    CANTIDAD OPTIONS (description = 'Cantidad de DOS.'),
+    ANIO OPTIONS (description = 'Año de DIA.')
+)
+OPTIONS (
+    description = CONCAT(
+        'Vista ',
+        'de prueba.'
+    )
+)
+AS
+SELECT
+    uno.ID,
+    dos.CANTIDAD,
+    EXTRACT(YEAR FROM dos.DIA) AS ANIO
+FROM ejemplo.UNO AS uno
+INNER JOIN ejemplo.DOS AS dos
+    ON uno.ID = dos.ID;
+
 SELECT uno.ID
 FROM ejemplo.UNO AS uno;

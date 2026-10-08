@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from warehouse import bq
-from warehouse.ddl import TableSpec, strip_comments_and_strings
+from warehouse.ddl import TableSpec, ViewSpec, strip_comments_and_strings
 from warehouse.expectations import Parameter, as_bq_parameters
 from warehouse.results import CheckResult, format_table, from_row
 
@@ -20,6 +20,10 @@ MAX_ROWS = 1000
 
 _PARAMETER = re.compile(r"@([a-z_]+)")
 _TABLE_REF = re.compile(rf"\b{bq.DATASET}\.(\w+)(?=\s+AS\s)")
+VIEW_REF = f"{bq.DATASET}.v_compras_farma_completa"
+VIEW_MISSING = "La vista no está desplegada: ejecuta 'make bq-vista'."
+
+Relation = TableSpec | ViewSpec
 
 
 @dataclass(frozen=True)
@@ -39,6 +43,11 @@ def check_name(path: Path) -> str:
     return Path(path).stem.split("_", 1)[1]
 
 
+def references_view(sql: str) -> bool:
+    """True when the SQL reads the view outside comments and string literals."""
+    return re.search(rf"\b{re.escape(VIEW_REF)}\b", strip_comments_and_strings(sql)) is not None
+
+
 def referenced_parameters(sql: str) -> list[str]:
     """Named parameters used outside comments and string literals, sorted."""
     return sorted(set(_PARAMETER.findall(strip_comments_and_strings(sql))))
@@ -50,7 +59,7 @@ def _rows(stdout: str) -> list[dict]:
 
 
 def run_checked_query(sql: str, params: Sequence[str] = ()) -> QueryOutcome:
-    """Dry run, then the labeled query with JSON output; nothing runs if the dry run fails."""
+    """Dry run, then the labeled query with JSON output. Nothing runs if the dry run fails."""
     dry = bq.execute(bq.dry_run_query(sql, params))
     if not dry.ok:
         return QueryOutcome(False, [], None, f"el dry run falló: {dry.output}")
@@ -69,9 +78,19 @@ def _count_label(rows: list[dict]) -> str:
     return f"{MAX_ROWS} o más" if len(rows) >= MAX_ROWS else str(len(rows))
 
 
-def run_sql_checks(expectations: dict[str, Parameter]) -> tuple[int, int, list[CheckResult]]:
-    """(passed, total, failing rows) of the checks in sql/checks/, printing one line each."""
+def run_sql_checks(
+    expectations: dict[str, Parameter], include_view: bool = True
+) -> tuple[int, int, list[CheckResult]]:
+    """(passed, total, failing rows) of the checks in sql/checks/, printing one line each.
+
+    With include_view=False the checks that read the view are left out of the run and the total.
+    """
     files = check_files()
+    if not include_view:
+        skipped = [p for p in files if references_view(p.read_text(encoding="utf-8"))]
+        files = [p for p in files if p not in skipped]
+        if skipped:
+            print(VIEW_MISSING)
     passed = 0
     failures: list[CheckResult] = []
     for path in files:
@@ -122,7 +141,7 @@ def _literal(value: str | None, sql_type: str) -> str:
     return f"CAST('{escaped}' AS {sql_type})"
 
 
-def _inline_select(table: TableSpec, rows: list[dict]) -> str:
+def _inline_select(table: Relation, rows: list[dict]) -> str:
     columns = ", ".join(c.name for c in table.columns)
     struct = ", ".join(f"{c.name} {c.type}" for c in table.columns)
     values = ", ".join(
@@ -131,13 +150,15 @@ def _inline_select(table: TableSpec, rows: list[dict]) -> str:
     return f"(SELECT {columns} FROM UNNEST(ARRAY<STRUCT<{struct}>>[{values}]))"
 
 
-def inline_tables(sql: str, case: dict, tables: Sequence[TableSpec]) -> str:
-    """The check with each farma_analytics.<TABLE> AS <alias> replaced by the case rows."""
-    by_name = {t.name: t for t in tables}
+def inline_tables(sql: str, case: dict, relations: Sequence[Relation]) -> str:
+    """The check with each farma_analytics.<TABLE or VIEW> AS <alias> replaced by the case rows."""
+    by_name = {r.name: r for r in relations}
 
     def replace(match: re.Match) -> str:
-        table = by_name[match.group(1)]
-        return _inline_select(table, case["tablas"][table.name])
+        relation = by_name[match.group(1)]
+        if relation.name not in case["tablas"]:
+            raise ValueError(f"El caso no trae filas para {relation.name}.")
+        return _inline_select(relation, case["tablas"][relation.name])
 
     inlined = _TABLE_REF.sub(replace, sql)
     if f"{bq.DATASET}." in strip_comments_and_strings(inlined):
@@ -145,14 +166,14 @@ def inline_tables(sql: str, case: dict, tables: Sequence[TableSpec]) -> str:
     return inlined
 
 
-def run_negative_checks(expectations: dict[str, Parameter], tables: Sequence[TableSpec]) -> int:
+def run_negative_checks(expectations: dict[str, Parameter], relations: Sequence[Relation]) -> int:
     """0 when every check reports its expected object for its negative case."""
     files = check_files()
     detected = 0
     for path in files:
         name = check_name(path)
         case = load_negative_case(NEGATIVE_DIR / f"{path.stem}.json")
-        sql = inline_tables(path.read_text(encoding="utf-8"), case, tables)
+        sql = inline_tables(path.read_text(encoding="utf-8"), case, relations)
         params = as_bq_parameters(expectations, referenced_parameters(sql))
         outcome = run_checked_query(sql, params)
         expected = case["esperado"]

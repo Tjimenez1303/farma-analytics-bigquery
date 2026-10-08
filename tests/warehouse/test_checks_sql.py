@@ -4,7 +4,13 @@ import re
 
 import pytest
 
-from warehouse.checks import CHECKS_DIR, check_files, check_name, referenced_parameters
+from warehouse.checks import (
+    CHECKS_DIR,
+    check_files,
+    check_name,
+    referenced_parameters,
+    references_view,
+)
 from warehouse.ddl import parse_sql, strip_comments_and_strings
 from warehouse.expectations import load_expectations
 
@@ -15,6 +21,7 @@ EXPECTED_FILES = [
     "04_dominios.sql",
     "05_reconciliacion_join.sql",
     "06_precio_unitario.sql",
+    "07_reconciliacion_vista.sql",
 ]
 EXPECTED_PARAMETERS = {
     "conteo_filas": ["filas_clue_cat", "filas_compras", "filas_cuadro_basico"],
@@ -23,6 +30,7 @@ EXPECTED_PARAMETERS = {
     "dominios": ["fecha_fin", "fecha_inicio"],
     "reconciliacion_join": ["huerfanos_clave", "huerfanos_clue"],
     "precio_unitario": ["dispersion_maxima", "precio_maximo", "precio_minimo"],
+    "reconciliacion_vista": [],
 }
 CONTRACT = ("CHEQUEO", "OBJETO", "DETALLE", "ESPERADO", "OBTENIDO")
 
@@ -31,7 +39,7 @@ def _code(path):
     return strip_comments_and_strings(path.read_text(encoding="utf-8"))
 
 
-def test_exactly_the_six_checks():
+def test_exactly_the_seven_checks():
     assert [p.name for p in check_files()] == EXPECTED_FILES
 
 
@@ -62,13 +70,21 @@ def test_style_rules(path):
 def test_final_select_follows_the_contract(path):
     sql = "CREATE SCHEMA IF NOT EXISTS x;\n" + path.read_text(encoding="utf-8")
     statement = parse_sql(sql).statements[-1]
-    assert statement.kind == "other"
+    assert statement.kind == "query"
     tail = statement.text
     final_select = tail[tail.rfind("\nSELECT") :] if "\nSELECT" in tail else tail
     names = re.findall(
         r"(?:\bAS\s+|\.)(" + "|".join(CONTRACT) + r")\b,?\s*$", final_select, re.MULTILINE
     )
     assert names[:5] == list(CONTRACT)
+
+
+def test_view_check_reads_the_view_and_the_three_tables():
+    code = _code(CHECKS_DIR / "07_reconciliacion_vista.sql")
+    for relation in ("v_compras_farma_completa", "COMPRAS", "CLUE_CAT", "CUADRO_BASICO"):
+        assert re.search(rf"farma_analytics\.{relation}\s+AS\s", code), relation
+    assert references_view(code)
+    assert not any(references_view(_code(p)) for p in check_files() if p.name[:2] != "07")
 
 
 def test_checks_dir_has_only_negative_subdir():

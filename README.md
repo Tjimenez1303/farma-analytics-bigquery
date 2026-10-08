@@ -188,7 +188,7 @@ El esquema de las tres tablas está escrito una sola vez, en las secciones 1 y 2
    make bq-load
    ```
 
-   Antes de llamar a BigQuery, el comando verifica `data/` contra el manifiesto y las tablas publicadas contra la DDL. Después reemplaza cada tabla con un solo job de carga (`bq load --replace`) que usa el esquema derivado de la DDL, sin autodetección y sin aceptar filas malas. Un job de carga es atómico, de modo que si falla la tabla conserva lo que tenía. Al terminar ejecuta los chequeos y muestra una huella del contenido de cada tabla, que sale idéntica si cargas dos veces los mismos archivos.
+   Antes de llamar a BigQuery, el comando verifica `data/` contra el manifiesto y las tablas publicadas contra la DDL. Después reemplaza cada tabla con un solo job de carga (`bq load --replace`) que usa el esquema derivado de la DDL, sin autodetección y sin aceptar filas malas. Un job de carga es atómico, de modo que si falla la tabla conserva lo que tenía. Al terminar ejecuta los chequeos y muestra una huella del contenido de cada tabla, que sale idéntica si cargas dos veces los mismos archivos. La carga no crea ni modifica la vista de la sección siguiente. Si la vista ya existe, también ejecuta su chequeo, y si todavía no existe lo avisa sin fallar.
 
 4. Revisa las tablas sin recargarlas.
 
@@ -212,6 +212,7 @@ Los chequeos están en [`sql/checks/`](sql/checks), uno por archivo, y cada uno 
 - `PIEZAS` es mayor que cero, `IMPORTE` no es negativo y `FECHA` cae dentro del periodo del generador.
 - Las filas y el importe de `COMPRAS` cuadran con el `INNER JOIN` de los dos catálogos más las filas huérfanas, que son 750 por `CLUE` y 750 por `CLAVE`.
 - El precio por pieza de cada `CLAVE` del catálogo queda entre 6.75 y 17 820 pesos, y el más caro no supera 4.4 veces el más barato.
+- La vista tiene las filas de `COMPRAS` menos las huérfanas, su `IMPORTE` y sus `PIEZAS` suman lo mismo que el `INNER JOIN` de las tablas, y sus columnas calculadas no tienen nulos.
 
 Ninguna de esas cifras está escrita en el SQL. El programa las lee del manifiesto y de [`generator/config.toml`](generator/config.toml) y se las pasa a cada consulta como parámetros, de modo que si cambia la configuración del generador los chequeos cambian con ella. Los límites del precio salen de los parámetros de precio: el precio base más bajo por el factor genérico más bajo y el ruido a la baja, y el precio base más alto por el factor de referencia más alto y el ruido al alza.
 
@@ -222,6 +223,51 @@ Las tablas no están particionadas ni agrupadas en clústeres. Suman unos 32 MB,
 Si cambias una descripción en la DDL después de crear las tablas, `make bq-schema` no la aplica, ya que `CREATE TABLE IF NOT EXISTS` no modifica una tabla existente. La verificación de metadatos marca la diferencia, y se corrige con `ALTER TABLE ... SET OPTIONS` o con `ALTER TABLE ... ALTER COLUMN ... SET OPTIONS` sobre el objeto afectado.
 
 Repite `make bq-load` solo cuando cambien los datos. Cada recarga reescribe las tablas y reinicia los 90 días que BigQuery espera antes de cobrarlas como almacenamiento de largo plazo. A este volumen el ahorro es pequeño, pero no hay motivo para perderlo.
+
+## Vista y consultas analíticas
+
+La vista `v_compras_farma_completa` une cada línea de `COMPRAS` con su unidad médica de `CLUE_CAT` y con su insumo de `CUADRO_BASICO`. Tiene una fila por cada línea de compra cuya `CLUE` y cuya `CLAVE` existen en los catálogos, de modo que las 1 500 líneas huérfanas quedan fuera y la vista tiene 298 500 filas, como comprueba el chequeo `reconciliacion_vista`. Las consultas analíticas y el dashboard leen solo de ella, para que den las mismas cifras.
+
+`FABRICANTE` aparece en `COMPRAS` y en `CUADRO_BASICO` con significados distintos, así que la vista lo separa en `FABRICANTE_COMPRA`, el fabricante del producto entregado, y `FABRICANTE_CATALOGO`, el de referencia de la molécula. Añade tres columnas calculadas por fila para el dashboard. `ANIO` y `MES` (el primer día del mes) sirven para series y comparaciones anuales, y `ENTIDAD_ISO` lleva el código ISO 3166-2 de la entidad, que Data Studio reconoce en los mapas sin confundir el estado de México con el país. Ninguna columna guarda un precio, porque un precio promedio no se puede sumar entre filas y tiene que calcularse al consultar.
+
+La vista y sus consultas están en las secciones 3 y 4 de [`sql/farma_analytics.sql`](sql/farma_analytics.sql). Estos objetivos también trabajan sobre el proyecto de GCP.
+
+1. Crea o reemplaza la vista.
+
+   ```bash
+   make bq-vista
+   ```
+
+   La sentencia pasa antes por un dry run. Reemplazar la vista no borra datos, porque una vista lógica no los guarda. Al terminar se ejecutan los siete chequeos y la comparación de los metadatos de la vista (tipo, dialecto, columnas y descripciones), y la salida acaba en `Chequeos: 7 de 7 en 0 filas. Metadatos: 0 diferencias.` Si cambias la vista, basta con repetir este comando sin recargar las tablas.
+
+2. Responde las tres preguntas comerciales.
+
+   ```bash
+   make bq-consultas
+   ```
+
+   Primero calcula las filas y los totales de la vista, y se detiene si la vista está vacía. Después ejecuta las cuatro consultas de la sección 4, cada una con su dry run, e imprime las respuestas completas de las dos primeras y las 20 primeras filas de las de precio, que tienen cientos. La consola de BigQuery las muestra completas. Por último comprueba que las cifras cuadran entre consultas y con el total de la vista, y termina con `Cifras cruzadas: 5 de 5 cuadran.`
+
+Las métricas tienen una sola definición, la misma en el SQL, el dashboard y los documentos:
+
+| Métrica | Definición |
+|---|---|
+| Monto total | `SUM(IMPORTE)` |
+| Piezas | `SUM(PIEZAS)` |
+| Precio promedio | `SUM(IMPORTE) / SUM(PIEZAS)`, con `SAFE_DIVIDE` en SQL |
+| Importe promedio por línea | `AVG(IMPORTE)` |
+| Participación | valor del grupo entre el total de la vista, en porcentaje |
+
+Algunas preguntas admiten más de una lectura. Estas son las que usamos y la razón de cada una:
+
+| Duda | Definición | Razón |
+|---|---|---|
+| Qué es volumen de compra | `SUM(IMPORTE)`, y la misma consulta muestra `SUM(PIEZAS)` como alternativa | Es la medida de la pregunta de las moléculas y la del gasto del dashboard |
+| Institución y entidad juntas o por separado | Las tres lecturas: la combinación, la institución sola y la entidad sola | Las tres salen de una sola lectura de la vista con `GROUPING SETS` |
+| Qué fabricante se usa en el precio | `FABRICANTE_COMPRA`, y otra consulta da el precio por `FABRICANTE_CATALOGO` | Es quien vendió a ese precio. Cada molécula tiene un solo fabricante de referencia, así que la alternativa equivale al precio de la molécula en todo el mercado |
+| Empates | En las 5 moléculas, el orden alfabético decide quién entra en el corte. En los líderes se usa `RANK`, que muestra a todos los empatados | La primera respuesta tiene que tener 5 filas exactas, y la segunda no debe esconder un empate |
+
+El precio promedio por molécula mezcla presentaciones con envases de distinto tamaño, porque la pregunta pide el precio por molécula y no por `CLAVE`. Para comparar presentaciones hay que agrupar por `CLAVE` o por `PRESENTACION`.
 
 ## Controles de costo
 

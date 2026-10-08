@@ -18,7 +18,7 @@ class CheckResult:
 
 
 def from_row(row: Mapping[str, object]) -> CheckResult:
-    """CheckResult from one JSON row returned by bq; NULL values become 'NULL'."""
+    """CheckResult from one JSON row returned by bq. NULL values become 'NULL'."""
     values = ["NULL" if row.get(column) is None else str(row[column]) for column in COLUMNS]
     return CheckResult(*values)
 

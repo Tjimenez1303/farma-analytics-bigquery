@@ -12,10 +12,10 @@ union_interna AS (
         COUNT(*) AS FILAS,
         COALESCE(SUM(compras.IMPORTE), 0) AS IMPORTE
     FROM farma_analytics.COMPRAS AS compras
-    INNER JOIN farma_analytics.CLUE_CAT AS clue_cat
-        ON compras.CLUE = clue_cat.CLUE
     INNER JOIN farma_analytics.CUADRO_BASICO AS cuadro_basico
         ON compras.CLAVE = cuadro_basico.CLAVE
+    INNER JOIN farma_analytics.CLUE_CAT AS clue_cat
+        ON compras.CLUE = clue_cat.CLUE
 ),
 
 -- Orphan flags with anti-semi-joins, so no outer join is needed.

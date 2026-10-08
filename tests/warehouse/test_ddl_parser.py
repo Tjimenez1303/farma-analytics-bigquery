@@ -18,7 +18,8 @@ def test_statements_in_order_without_terminator(parsed):
         ("create_schema", "ejemplo"),
         ("create_table", "ejemplo.UNO"),
         ("create_table", "ejemplo.DOS"),
-        ("other", ""),
+        ("create_view", "ejemplo.v_ejemplo"),
+        ("query", ""),
     ]
     assert parsed.statements[0].text.startswith("CREATE SCHEMA IF NOT EXISTS ejemplo")
     assert all(not s.text.rstrip().endswith(";") for s in parsed.statements)
@@ -47,6 +48,11 @@ def test_table_specs(parsed):
         ("CANTIDAD", "INT64", "REQUIRED"),
         ("DIA", "DATE", "NULLABLE"),
     ]
+
+
+def test_view_is_not_a_table(parsed):
+    assert [t.name for t in parsed.tables] == ["UNO", "DOS"]
+    assert parsed.view is not None
 
 
 def test_invalid_sql_raises():

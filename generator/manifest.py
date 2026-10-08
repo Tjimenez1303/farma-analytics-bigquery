@@ -57,7 +57,7 @@ def load(path: Path) -> dict[str, Any]:
 
 
 def compare(expected: dict[str, Any], actual: dict[str, Any]) -> list[str]:
-    """One line in Spanish per difference; empty when both manifests match."""
+    """One line in Spanish per difference, empty when both manifests match."""
     diffs: list[str] = []
     actual_files = {f["name"]: f for f in actual.get("files", [])}
     for exp in expected.get("files", []):
@@ -81,7 +81,7 @@ def compare(expected: dict[str, Any], actual: dict[str, Any]) -> list[str]:
 
 
 def verify(expected_path: Path, data_dir: Path) -> tuple[list[str], list[str]]:
-    """Recompute the files listed in the expected manifest; returns (ok lines, diff lines)."""
+    """Recompute the files listed in the expected manifest and return (ok lines, diff lines)."""
     expected = load(expected_path)
     data_dir = Path(data_dir)
     generated_path = data_dir / "manifest.json"

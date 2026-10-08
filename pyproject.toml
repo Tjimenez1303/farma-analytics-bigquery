@@ -30,3 +30,10 @@ line-length = 100
 
 [tool.ruff.lint]
 extend-select = ["B", "I", "UP"]
+
+# A line breaks only when it does not fit in line-length, never by a trailing comma.
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
