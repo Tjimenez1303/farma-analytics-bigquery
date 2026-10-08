@@ -350,8 +350,11 @@ Cleveland & McGill y Knaflic, junto con WCAG 2.1.
   - `GRUPO_TERAPEUTICO` / `MOLECULA`.
 - Los controles van en una franja común en la cabecera. Son listas desplegables con búsqueda,
   encadenadas en cascada.
-- El rango de fechas por defecto MUST cubrir un periodo con datos. *Auto* (últimos 28 días)
-  dejaría vacío un tablero de datos históricos.
+- El rango de fechas por defecto MUST ser un rango fijo que cubra un periodo con datos y cuyo
+  periodo de referencia de comparación también tenga datos. *Auto* MUST NOT usarse: con BigQuery
+  muestra todo el rango de fechas del dataset (los últimos 28 días solo aplican a Google Ads,
+  Analytics y YouTube), así que su periodo de comparación queda sin datos o solo en parte, y además
+  deja el valor por defecto implícito en lugar de escrito en la especificación del dashboard.
 - Cada control MUST afectar a todos los visuales. Si hay alguna excepción, MUST indicarse en el
   tablero.
 - MUST existir un botón para restablecer los filtros, y el cross-filtering MUST estar activo en los
@@ -380,21 +383,30 @@ Cleveland & McGill y Knaflic, junto con WCAG 2.1.
 - Disposición:
   - una página principal sin scroll, en lienzo 16:9;
   - en pirámide invertida: título y controles, después KPIs, desglose y detalle;
-  - lectura en F o Z, con la rejilla fijada antes de maquetar y los componentes alineados.
+  - la zona superior izquierda es la más visible y se reserva para lo más importante (Few,
+    "Common Pitfalls in Dashboard Design", error 9), con la rejilla fijada antes de maquetar y los
+    componentes alineados.
 - Alta proporción de tinta dedicada a los datos:
-  - sin 3D, sombras, degradados ni fondos con imagen;
+  - sin 3D, sombras, degradados ni fondos con imagen. El degradado prohibido es el decorativo
+    (fondos, barras o componentes con efecto). Una escala de color continua que codifica una medida,
+    como la de un mapa coloreado por valor, no es decoración y se admite;
   - barras que empiezan en cero y sin doble eje;
   - categorías ordenadas por la métrica.
 - Color:
   - un color base y, como máximo, un color de acento por gráfico;
   - paleta categórica de 8 colores o menos, apta para daltonismo (Okabe-Ito o el tema por
-    defecto);
+    defecto). Un color de la paleta con menos de 3:1 frente al fondo (en Okabe-Ito sobre blanco:
+    naranja `#E69F00`, azul cielo `#56B4E9` y amarillo `#F0E442`) solo se admite si el dato
+    también aparece como texto o etiqueta visible;
   - la misma categoría lleva el mismo color en todo el informe.
 - Accesibilidad:
   - contraste WCAG 2.1 AA: al menos 4.5:1 en texto y 3:1 en elementos gráficos;
   - el color nunca es el único canal;
   - una sola familia tipográfica con 3 tamaños o menos;
-  - etiquetas directas en lugar de leyendas, y sin texto rotado en los ejes.
+  - etiquetas directas en lugar de leyendas, y sin texto rotado en los ejes. Se admite una leyenda
+    cuando no caben etiquetas directas en cada elemento (por ejemplo, la escala de color de un mapa
+    coloreado por valor con entidades pequeñas), siempre que los valores exactos estén también en
+    otro visual o en el tooltip.
 - Transparencia:
   - un subtítulo indica la fuente (datos sintéticos), el periodo, la fecha de corte y la definición
     de precio promedio ponderado;
@@ -831,10 +843,12 @@ documentación oficial el 2026-10-07.
     compute, best-practices-costs, best-practices-storage, data-types, data-definition-language,
     primary-foreign-keys, load-statements, introduction-sql, legacy-sql-feature-availability y
     labels-intro. El anexo de estándares verificados detalla cada una.
-  - Data Studio: a-typical-workflow, data-credentials, about-calculated-fields, about-controls y
-    geo-dimension-reference.
+  - Data Studio: a-typical-workflow, data-credentials, about-calculated-fields, about-controls,
+    geo-dimension-reference y set-report-date-ranges (verificada el 2026-10-08).
   - SQLFluff, con el dialecto bigquery.
-  - Teoría de visualización: Tufte, Few, Cleveland & McGill y Knaflic.
+  - Teoría de visualización: Tufte, Few, Cleveland & McGill, Knaflic y la guía "Data
+    visualisation: charts" del Government Analysis Function del Reino Unido (barras desde cero,
+    orden por valor y un máximo de 5 categorías en un pie).
   - Accesibilidad: WCAG 2.1.
   - Escritura humana:
     - Wikipedia, "Signs of AI writing";
@@ -842,4 +856,4 @@ documentación oficial el 2026-10-07.
     - Alonso Simón et al. (UCM, RAEL 2025) sobre rasgos de GPT en español;
     - el *Diccionario panhispánico de dudas*.
 
-**Version**: 1.4.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
+**Version**: 1.4.3 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08

@@ -18,7 +18,7 @@ LOCATION = $(shell sed -n 's/^--location=//p' .bigqueryrc)
 REGION = region-$(shell printf '%s' '$(LOCATION)' | tr '[:upper:]' '[:lower:]')
 DIALECT_SQL = ALTER PROJECT \`$(PROJECT_ID)\` SET OPTIONS (\`$(REGION).default_sql_dialect_option\` = 'only_google_sql')
 
-.PHONY: help setup-dev test require-venv require-project doctor gcp-dialect gcp-quota gcp-budget gcp-setup lint lint-sql lint-prosa data data-verify data-manifest bq-schema bq-vista bq-load bq-checks bq-checks-negativos bq-consultas
+.PHONY: help setup-dev test require-venv require-project doctor gcp-dialect gcp-quota gcp-budget gcp-setup lint lint-sql lint-prosa data data-verify data-manifest bq-schema bq-vista bq-load bq-checks bq-checks-negativos bq-consultas bq-dashboard
 
 help: ## Lista los objetivos disponibles
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-20s %s\n", $$1, $$2}'
@@ -73,6 +73,16 @@ bq-checks-negativos: require-venv require-project ## Comprueba que cada chequeo 
 
 bq-consultas: require-venv require-project ## Responde las tres preguntas comerciales sobre la vista y cruza sus cifras
 	@$(WAREHOUSE) consultas
+
+# Dashboard filters, each passed only when it has a value: make bq-dashboard ENTIDAD=Jalisco
+DASHBOARD_FILTERS = $(if $(DESDE),--desde "$(DESDE)") $(if $(HASTA),--hasta "$(HASTA)") \
+	$(if $(ENTIDAD),--entidad "$(ENTIDAD)") $(if $(INSTITUCION),--institucion "$(INSTITUCION)") \
+	$(if $(GRUPO_INSTITUCIONAL),--grupo-institucional "$(GRUPO_INSTITUCIONAL)") \
+	$(if $(GRUPO_TERAPEUTICO),--grupo-terapeutico "$(GRUPO_TERAPEUTICO)") \
+	$(if $(MOLECULA),--molecula "$(MOLECULA)")
+
+bq-dashboard: require-venv require-project ## Calcula sobre la vista las cifras que muestra el dashboard (KPIs, entidades, instituciones y top 10) con los filtros indicados
+	@$(WAREHOUSE) dashboard $(DASHBOARD_FILTERS)
 
 lint: require-venv ## Ejecuta los chequeos de pre-commit sobre todo el repositorio (igual que CI)
 	uv run pre-commit run --all-files

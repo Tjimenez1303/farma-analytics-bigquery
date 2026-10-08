@@ -1,14 +1,80 @@
-# farma-analytics-bigquery
+<p align="center">
+  <img src="docs/assets/banner.png" alt="PharmaLens, public medicine procurement analytics for Mexico" width="100%">
+</p>
 
-Proyecto de analítica en BigQuery sobre compras públicas de medicamentos en México. Incluye la generación de los datos, el modelo dimensional y un dashboard interactivo en Data Studio para encontrar oportunidades comerciales.
+<p align="center">
+  <a href="https://github.com/Tjimenez1303/farma-analytics-bigquery/actions/workflows/checks.yml"><img src="https://github.com/Tjimenez1303/farma-analytics-bigquery/actions/workflows/checks.yml/badge.svg" alt="Checks"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/python-3.12-blue.svg" alt="Python 3.12">
+  <img src="https://img.shields.io/badge/BigQuery-GoogleSQL-4285F4.svg" alt="BigQuery with GoogleSQL">
+  <img src="https://img.shields.io/badge/Data%20Studio-dashboard-0072B2.svg" alt="Data Studio dashboard">
+</p>
 
-Los datos son sintéticos. Los produce un generador versionado en este repositorio y no contienen información real de compras ni datos personales.
+PharmaLens is an analytics project on public medicine purchases in Mexico, built on BigQuery and Data Studio. It answers three questions a pharmaceutical lab asks before a sale: which institutions and states buy the most, which molecules carry the spend, and what each manufacturer charges per unit.
 
-## Requisitos previos
+The repository covers the whole path. A versioned generator produces the data, a dimensional model in BigQuery stores it, SQL checks prove it is consistent, and an interactive dashboard puts it in front of an analyst. The data is synthetic. It contains no real purchases and no personal data.
 
-Las versiones mínimas de las herramientas del sistema están en [`scripts/tool_versions.env`](scripts/tool_versions.env). La versión de Python está fijada en [`.python-version`](.python-version) y las dependencias de desarrollo en [`pyproject.toml`](pyproject.toml), con sus versiones exactas en `uv.lock`. Python no hace falta instalarlo a mano, porque uv descarga la versión fijada la primera vez.
+> The detailed documentation in [`docs/`](docs) and the specifications in [`specs/`](specs) are written in Spanish. The dashboard labels are in Spanish too.
 
-En macOS, con Homebrew:
+## Dashboard
+
+<p align="center">
+  <img src="docs/assets/dashboard.png" alt="Dashboard with three KPI cards, spend by state as bars and as a map, share by institution and the top 10 molecule and manufacturer pairs" width="100%">
+</p>
+
+<p align="center"><a href="https://datastudio.google.com/reporting/47a2dbb4-120b-4324-8af0-6216a40771c6">Open the live dashboard</a>, no Google account needed.</p>
+
+The dashboard opens on 2025 and compares every card with the same dates a year earlier. Five cascading filters (state, institution, institutional group, therapeutic group and molecule) drive every chart, and a click on a bar or a state filters the rest of the page. The "Hallazgos clave" box rewrites its three findings as the filters change.
+
+## Highlights
+
+- Reproducible data. The generator writes three CSV files and a manifest with the SHA-256 hash of each one, so anyone can check they have the same bytes.
+- One schema, written once. [`sql/farma_analytics.sql`](sql/farma_analytics.sql) holds the DDL, the view and the analytical queries, and runs as is in the BigQuery console. The load derives its schema from that file.
+- Checks that prove themselves. Seven quality checks return zero rows when their rule holds, and each one has a negative case that must fail.
+- Figures that match. `make bq-dashboard` runs the same filters as the dashboard in SQL and cross-checks the totals, so the cards, the state ranking and the top 10 can be audited.
+- Costs under control. A per-query byte limit, a daily project quota and a budget alert.
+- Accessible design. One data color from the Okabe-Ito palette, WCAG 2.1 AA contrast checked by a test, and change shown with an arrow, never with color alone.
+
+## How it works
+
+```mermaid
+flowchart LR
+    G[Generator] --> C[CSV files and manifest]
+    C --> T[BigQuery tables]
+    T --> V[View v_compras_farma_completa]
+    V --> Q[Analytical queries]
+    V --> D[Data Studio dashboard]
+    V --> K[Quality checks]
+```
+
+| Folder | Contents |
+|---|---|
+| [`generator/`](generator) | Synthetic data generator, its configuration and the reference manifest |
+| [`sql/`](sql) | DDL, view and queries, plus the quality checks and the dashboard queries |
+| [`warehouse/`](warehouse) | Python program behind the BigQuery targets of the `Makefile` |
+| [`scripts/`](scripts) | Environment diagnosis, GCP setup and the prose linter |
+| [`docs/`](docs) | Synthetic data, dashboard specification and traceability matrix |
+| [`tests/`](tests) | Tests that run without network or credentials |
+
+## Requirements
+
+| Tool | Minimum version |
+|---|---|
+| Google Cloud CLI (`gcloud` and `bq`) | 500.0.0 |
+| uv | 0.12.0 |
+| GNU Make | 3.81 |
+| ripgrep | 14.0.0 |
+| Git | any recent version |
+
+The minimum versions live in [`scripts/tool_versions.env`](scripts/tool_versions.env). You do not need to install Python by hand: uv downloads the version pinned in [`.python-version`](.python-version) the first time, and installs the exact development dependencies from `uv.lock`.
+
+You also need a Google Cloud billing account. With this volume the usage fits in the BigQuery free tier.
+
+## Installation
+
+### macOS
+
+With [Homebrew](https://brew.sh):
 
 ```bash
 brew install --cask google-cloud-sdk
@@ -18,27 +84,55 @@ brew install --cask google-cloud-sdk
 brew install uv ripgrep
 ```
 
+This command installs `make` and `git` if you do not have them yet:
+
 ```bash
 xcode-select --install
 ```
 
-El último comando instala `make` y `git` si todavía no los tienes.
+### Linux
 
-En Linux, Google Cloud CLI se instala con la [guía oficial](https://cloud.google.com/sdk/docs/install) y uv con su instalador:
+On Debian or Ubuntu 24.04 or later, whose ripgrep already meets the minimum. First the system tools:
+
+```bash
+sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates gnupg curl make git ripgrep
+```
+
+Then Google Cloud CLI, from the [official package repository](https://docs.cloud.google.com/sdk/docs/install):
+
+```bash
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+```
+
+```bash
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+```
+
+```bash
+sudo apt-get update && sudo apt-get install google-cloud-cli
+```
+
+And uv, with its installer:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-```bash
-sudo apt install make ripgrep
+### Windows
+
+The `Makefile` and the scripts need Bash, so on Windows the project runs inside [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install) with Ubuntu. It requires Windows 10 version 2004 or later, or Windows 11. Open PowerShell as administrator, run this command and restart the computer:
+
+```powershell
+wsl --install
 ```
 
-## Arranque rápido
+Open Ubuntu from the Start menu, create your Linux user and follow the [Linux](#linux) steps inside it. Clone the repository in your Linux home folder (for example `~/farma-analytics-bigquery`) and not under `/mnt/c`, because file access across the two systems is much slower. If `gcloud auth login` cannot open a browser, it prints a link that you can open in Windows.
 
-Estos pasos crean un proyecto de GCP nuevo para este repositorio y dejan el entorno listo. En los comandos, `<PROJECT_ID>` es el ID que elijas para el proyecto y `<BILLING_ACCOUNT_ID>` es el de tu cuenta de facturación.
+## Quick start
 
-1. Clona el repositorio y entra en la carpeta.
+These steps create a new GCP project for this repository and leave the environment ready. In the commands, `<PROJECT_ID>` is the ID you choose for the project and `<BILLING_ACCOUNT_ID>` is the ID of your billing account.
+
+1. Clone the repository and enter the folder.
 
    ```bash
    git clone https://github.com/Tjimenez1303/farma-analytics-bigquery.git
@@ -48,13 +142,13 @@ Estos pasos crean un proyecto de GCP nuevo para este repositorio y dejan el ento
    cd farma-analytics-bigquery
    ```
 
-2. Inicia sesión en Google Cloud con tu cuenta de usuario.
+2. Sign in to Google Cloud with your user account.
 
    ```bash
    gcloud auth login
    ```
 
-3. Crea el proyecto y asócialo a tu cuenta de facturación. Si no indicas `--name`, el nombre visible del proyecto es el mismo ID. El segundo comando muestra el ID de las cuentas de facturación a las que tienes acceso, y si sale vacío tienes que crear una en la [página de facturación de la consola](https://console.cloud.google.com/billing) antes de seguir.
+3. Create the project and link it to your billing account. Without `--name`, the display name of the project is its ID. The second command lists the billing accounts you can use. If it comes back empty, create one on the [billing page of the console](https://console.cloud.google.com/billing) before you go on.
 
    ```bash
    gcloud projects create <PROJECT_ID>
@@ -68,7 +162,7 @@ Estos pasos crean un proyecto de GCP nuevo para este repositorio y dejan el ento
    gcloud billing projects link <PROJECT_ID> --billing-account=<BILLING_ACCOUNT_ID>
    ```
 
-4. Deja el proyecto como predeterminado y habilita las APIs que usa el repositorio.
+4. Make it the default project and enable the APIs the repository uses.
 
    ```bash
    gcloud config set project <PROJECT_ID>
@@ -78,7 +172,7 @@ Estos pasos crean un proyecto de GCP nuevo para este repositorio y dejan el ento
    gcloud services enable bigquery.googleapis.com billingbudgets.googleapis.com cloudquotas.googleapis.com cloudbilling.googleapis.com --project=<PROJECT_ID>
    ```
 
-5. Crea las credenciales por defecto de la aplicación (ADC), que son las que usan las bibliotecas de Google Cloud, y asígnales el proyecto para el control de cuota.
+5. Create the Application Default Credentials (ADC), which the Google Cloud libraries use, and set the project that carries their quota.
 
    ```bash
    gcloud auth application-default login
@@ -88,31 +182,31 @@ Estos pasos crean un proyecto de GCP nuevo para este repositorio y dejan el ento
    gcloud auth application-default set-quota-project <PROJECT_ID>
    ```
 
-6. Copia la configuración local y rellena tus valores. El archivo explica cada variable.
+6. Copy the local configuration and fill in your values. The file explains each variable.
 
    ```bash
    cp .env.example .env
    ```
 
-7. Instala el entorno de desarrollo, que incluye Python y las herramientas de calidad.
+7. Install the development environment, with Python and the quality tools.
 
    ```bash
    make setup-dev
    ```
 
-8. Aplica los ajustes del proyecto: solo GoogleSQL, cuota diaria de consultas y alerta de presupuesto.
+8. Apply the project settings: GoogleSQL only, a daily query quota and a budget alert.
 
    ```bash
    make gcp-setup
    ```
 
-9. Comprueba que todo está en orden. El diagnóstico solo hace dry runs y lecturas de metadatos, así que no factura nada.
+9. Check that everything is in order. The diagnosis only runs dry runs and metadata reads, so it bills nothing.
 
    ```bash
    make doctor
    ```
 
-Una salida correcta se parece a esta. B03 aparece como omitido hasta que se cree el dataset `farma_analytics`.
+The program messages are in Spanish. A healthy run looks like this, with B03 skipped until the `farma_analytics` dataset exists:
 
 ```text
 Diagnóstico de farma-analytics-bigquery
@@ -144,166 +238,203 @@ OK       B04  Límite de bytes                 1.00 GiB por consulta
 Resumen: 21 OK, 0 AVISO, 0 FALLO, 1 OMITIDO
 ```
 
-Cuando un chequeo falla, la línea `remedio:` indica el comando o el paso que lo corrige. `make help` lista todos los objetivos disponibles.
+When a check fails, its `remedio:` line gives the command or step that fixes it. `make help` lists every target.
 
-## Datos sintéticos
+## Synthetic data
 
-Los datos de las tres fuentes (`COMPRAS`, `CLUE_CAT` y `CUADRO_BASICO`) son sintéticos. Los fabricantes, las marcas y los proveedores son empresas ficticias, y las unidades médicas, las claves y las compras también son inventadas. Los nombres de las entidades, los municipios, las instituciones y las moléculas sí son reales, para que el análisis se parezca a un mercado verdadero. [`docs/datos_sinteticos.md`](docs/datos_sinteticos.md) describe cada campo, los patrones que el generador inyecta a propósito y las fuentes de los catálogos de referencia.
+The data of the three sources (`COMPRAS`, `CLUE_CAT` and `CUADRO_BASICO`) is synthetic. Manufacturers, brands and suppliers are fictitious companies, and medical units, codes and purchases are made up too. The names of states, municipalities, institutions and molecules are real, so the analysis resembles a true market. [`docs/datos_sinteticos.md`](docs/datos_sinteticos.md) describes each field, the patterns the generator injects on purpose and the sources of the reference catalogs.
 
-Para generar los datos en `data/` y comprobar que son idénticos a los de referencia:
+To generate the data in `data/` and check that it matches the reference:
 
 ```bash
 make data
 ```
 
-El comando escribe los tres CSV y un manifiesto con la huella SHA-256 de cada archivo, y lo compara con [`generator/manifest.json`](generator/manifest.json). Cada archivo debe salir como `OK`. Un `DIFIERE` indica que los bytes no coinciden, y el mensaje muestra las versiones de Python, NumPy y Faker de cada lado, porque la igualdad exacta solo está garantizada en el mismo entorno. `make data-verify` repite la comprobación sin regenerar.
+The command writes the three CSV files and a manifest with the SHA-256 hash of each one, and compares it with [`generator/manifest.json`](generator/manifest.json). Every file must come out as `OK`. A `DIFIERE` means the bytes do not match, and the message shows the Python, NumPy and Faker versions on each side, because an exact match is only guaranteed in the same environment. `make data-verify` repeats the check without generating again.
 
-La carpeta `data/` no se versiona. Cuando un cambio en [`generator/config.toml`](generator/config.toml) es intencional, `make data-manifest` actualiza el manifiesto de referencia, y los dos archivos van juntos en el mismo PR.
+The `data/` folder is not versioned. When a change to [`generator/config.toml`](generator/config.toml) is intentional, `make data-manifest` updates the reference manifest, and both files go in the same pull request.
 
-## Carga en BigQuery
+## Loading into BigQuery
 
-El esquema de las tres tablas está escrito una sola vez, en las secciones 1 y 2 de [`sql/farma_analytics.sql`](sql/farma_analytics.sql). Ese archivo se puede ejecutar entero en la consola de BigQuery, y los objetivos de `make` lo usan como única fuente: crean el dataset y las tablas con sus sentencias y derivan de ellas el esquema con el que se cargan los CSV. Estos objetivos trabajan sobre el proyecto de GCP, así que los ejecuta quien tenga acceso a él.
+The schema of the three tables is written once, in sections 1 and 2 of [`sql/farma_analytics.sql`](sql/farma_analytics.sql). You can run the whole file in the BigQuery console, and the `make` targets use it as their only source: they create the dataset and the tables with its statements and derive from them the schema used to load the CSV files. These targets work on the GCP project, so whoever runs them needs access to it.
 
-1. Genera los datos y comprueba que coinciden con el manifiesto.
+1. Generate the data and check it against the manifest.
 
    ```bash
    make data
    ```
 
-2. Crea el dataset `farma_analytics` y las tablas `COMPRAS`, `CLUE_CAT` y `CUADRO_BASICO`.
+2. Create the `farma_analytics` dataset and the `COMPRAS`, `CLUE_CAT` and `CUADRO_BASICO` tables.
 
    ```bash
    make bq-schema
    ```
 
-   Cada sentencia pasa antes por un dry run y solo se ejecuta si la validación no da errores. Al final, el comando compara lo publicado en BigQuery con la DDL (location, labels, tipos, modos y descripciones) y termina con `Metadatos: 0 diferencias con la DDL`. Repetirlo no cambia nada, porque las sentencias usan `CREATE ... IF NOT EXISTS`.
+   Each statement goes through a dry run first and only runs if the validation passes. At the end, the command compares what BigQuery published with the DDL (location, labels, types, modes and descriptions) and ends with `Metadatos: 0 diferencias con la DDL`. Running it again changes nothing, because the statements use `CREATE ... IF NOT EXISTS`.
 
-3. Carga los CSV.
+3. Load the CSV files.
 
    ```bash
    make bq-load
    ```
 
-   Antes de llamar a BigQuery, el comando verifica `data/` contra el manifiesto y las tablas publicadas contra la DDL. Después reemplaza cada tabla con un solo job de carga (`bq load --replace`) que usa el esquema derivado de la DDL, sin autodetección y sin aceptar filas malas. Un job de carga es atómico, de modo que si falla la tabla conserva lo que tenía. Al terminar ejecuta los chequeos y muestra una huella del contenido de cada tabla, que sale idéntica si cargas dos veces los mismos archivos. La carga no crea ni modifica la vista de la sección siguiente. Si la vista ya existe, también ejecuta su chequeo, y si todavía no existe lo avisa sin fallar.
+   Before calling BigQuery, the command checks `data/` against the manifest and the published tables against the DDL. Then it replaces each table with a single load job (`bq load --replace`) that uses the schema derived from the DDL, with no autodetection and no bad rows allowed. A load job is atomic, so if it fails the table keeps what it had. When it finishes it runs the checks and prints a fingerprint of each table, which comes out the same if you load the same files twice. The load does not create or modify the view of the next section. If the view already exists, it also runs its check, and if it does not exist yet it says so without failing.
 
-4. Revisa las tablas sin recargarlas.
+4. Review the tables without loading them again.
 
    ```bash
    make bq-checks
    ```
 
-5. Comprueba que cada chequeo detecta el error que le toca.
+5. Check that each quality check catches the error it is meant to catch.
 
    ```bash
    make bq-checks-negativos
    ```
 
-   Cada chequeo se ejecuta con unas pocas filas inventadas que traen un error a propósito, escritas dentro de la consulta en lugar de las tablas reales, así que no se factura ningún byte. Sirve para comprobar un chequeo después de modificarlo.
+   Each check runs on a few made-up rows that carry an error on purpose, written inside the query instead of the real tables, so no bytes are billed. Use it to test a check after changing it.
 
-Los chequeos están en [`sql/checks/`](sql/checks), uno por archivo, y cada uno devuelve 0 filas cuando su regla se cumple:
+The checks live in [`sql/checks/`](sql/checks), one per file, and each returns 0 rows when its rule holds:
 
-- El número de filas de cada tabla es el del manifiesto (300 000, 2 000 y 161).
-- `CLUE` es única en `CLUE_CAT` y `CLAVE` es única en `CUADRO_BASICO`.
-- Las claves, `FECHA`, `PIEZAS` e `IMPORTE` no tienen nulos.
-- `PIEZAS` es mayor que cero, `IMPORTE` no es negativo y `FECHA` cae dentro del periodo del generador.
-- Las filas y el importe de `COMPRAS` cuadran con el `INNER JOIN` de los dos catálogos más las filas huérfanas, que son 750 por `CLUE` y 750 por `CLAVE`.
-- El precio por pieza de cada `CLAVE` del catálogo queda entre 6.75 y 17 820 pesos, y el más caro no supera 4.4 veces el más barato.
-- La vista tiene las filas de `COMPRAS` menos las huérfanas, su `IMPORTE` y sus `PIEZAS` suman lo mismo que el `INNER JOIN` de las tablas, y sus columnas calculadas no tienen nulos.
+- The row count of each table matches the manifest (300 000, 2 000 and 161).
+- `CLUE` is unique in `CLUE_CAT` and `CLAVE` is unique in `CUADRO_BASICO`.
+- The keys, `FECHA`, `PIEZAS` and `IMPORTE` have no nulls.
+- `PIEZAS` is greater than zero, `IMPORTE` is not negative and `FECHA` falls inside the generator period.
+- The rows and the amount of `COMPRAS` add up to the `INNER JOIN` with both catalogs plus the orphan rows, which are 750 by `CLUE` and 750 by `CLAVE`.
+- The unit price of each catalog `CLAVE` stays between 6.75 and 17 820 pesos, and the most expensive is at most 4.4 times the cheapest.
+- The view has the rows of `COMPRAS` minus the orphans, its `IMPORTE` and `PIEZAS` add up to the `INNER JOIN` of the tables, and its computed columns have no nulls.
 
-Ninguna de esas cifras está escrita en el SQL. El programa las lee del manifiesto y de [`generator/config.toml`](generator/config.toml) y se las pasa a cada consulta como parámetros, de modo que si cambia la configuración del generador los chequeos cambian con ella. Los límites del precio salen de los parámetros de precio: el precio base más bajo por el factor genérico más bajo y el ruido a la baja, y el precio base más alto por el factor de referencia más alto y el ruido al alza.
+None of those figures is written in the SQL. The program reads them from the manifest and from [`generator/config.toml`](generator/config.toml) and passes them to each query as parameters, so if the generator configuration changes the checks change with it. The price limits come from the price parameters: the lowest base price times the lowest generic factor and the downward noise, and the highest base price times the highest reference factor and the upward noise.
 
-Cada consulta pasa por un dry run, lleva las labels `project` y `env` para atribuir su costo y respeta el límite de 1 GiB de `.bigqueryrc`. Los jobs de carga son la excepción, porque `bq load` no admite dry run ni labels. Por eso la validación de los CSV y del esquema se hace antes de cargar, y un job de carga no procesa bytes de consulta, así que el límite no le afecta.
+Every query goes through a dry run, carries the `project` and `env` labels to attribute its cost and respects the 1 GiB limit of `.bigqueryrc`. Load jobs are the exception, because `bq load` supports neither dry runs nor labels. That is why the CSV files and the schema are validated before loading, and a load job processes no query bytes, so the limit does not apply to it.
 
-Las tablas no están particionadas ni agrupadas en clústeres. Suman unos 32 MB, y la documentación de BigQuery sitúa el beneficio del clustering a partir de 64 MB y el del particionado en particiones de varios GB. Tampoco declaran claves foráneas, porque `COMPRAS` tiene huérfanos a propósito y BigQuery usaría esas restricciones para eliminar joins y daría cifras incorrectas.
+The tables are neither partitioned nor clustered. Together they weigh about 32 MB, and the BigQuery documentation places the benefit of clustering above 64 MB and the benefit of partitioning at partitions of several GB. They do not declare foreign keys either, because `COMPRAS` has orphans on purpose and BigQuery would use those constraints to remove joins and return wrong figures.
 
-Si cambias una descripción en la DDL después de crear las tablas, `make bq-schema` no la aplica, ya que `CREATE TABLE IF NOT EXISTS` no modifica una tabla existente. La verificación de metadatos marca la diferencia, y se corrige con `ALTER TABLE ... SET OPTIONS` o con `ALTER TABLE ... ALTER COLUMN ... SET OPTIONS` sobre el objeto afectado.
+If you change a description in the DDL after creating the tables, `make bq-schema` does not apply it, since `CREATE TABLE IF NOT EXISTS` does not modify an existing table. The metadata comparison flags the difference, and you fix it with `ALTER TABLE ... SET OPTIONS` or `ALTER TABLE ... ALTER COLUMN ... SET OPTIONS` on the affected object.
 
-Repite `make bq-load` solo cuando cambien los datos. Cada recarga reescribe las tablas y reinicia los 90 días que BigQuery espera antes de cobrarlas como almacenamiento de largo plazo. A este volumen el ahorro es pequeño, pero no hay motivo para perderlo.
+Run `make bq-load` again only when the data changes. Each reload rewrites the tables and restarts the 90 days BigQuery waits before billing them as long-term storage. At this volume the saving is small, but there is no reason to lose it.
 
-## Vista y consultas analíticas
+## View and analytical queries
 
-La vista `v_compras_farma_completa` une cada línea de `COMPRAS` con su unidad médica de `CLUE_CAT` y con su insumo de `CUADRO_BASICO`. Tiene una fila por cada línea de compra cuya `CLUE` y cuya `CLAVE` existen en los catálogos, de modo que las 1 500 líneas huérfanas quedan fuera y la vista tiene 298 500 filas, como comprueba el chequeo `reconciliacion_vista`. Las consultas analíticas y el dashboard leen solo de ella, para que den las mismas cifras.
+The `v_compras_farma_completa` view joins each line of `COMPRAS` with its medical unit from `CLUE_CAT` and its item from `CUADRO_BASICO`. It has one row for each purchase line whose `CLUE` and `CLAVE` exist in the catalogs, so the 1 500 orphan lines stay out and the view has 298 500 rows, as the `reconciliacion_vista` check confirms. The analytical queries and the dashboard read only from it, so they give the same figures.
 
-`FABRICANTE` aparece en `COMPRAS` y en `CUADRO_BASICO` con significados distintos, así que la vista lo separa en `FABRICANTE_COMPRA`, el fabricante del producto entregado, y `FABRICANTE_CATALOGO`, el de referencia de la molécula. Añade tres columnas calculadas por fila para el dashboard. `ANIO` y `MES` (el primer día del mes) sirven para series y comparaciones anuales, y `ENTIDAD_ISO` lleva el código ISO 3166-2 de la entidad, que Data Studio reconoce en los mapas sin confundir el estado de México con el país. Ninguna columna guarda un precio, porque un precio promedio no se puede sumar entre filas y tiene que calcularse al consultar.
+`FABRICANTE` appears in `COMPRAS` and in `CUADRO_BASICO` with different meanings, so the view splits it into `FABRICANTE_COMPRA`, the manufacturer of the delivered product, and `FABRICANTE_CATALOGO`, the reference manufacturer of the molecule. It adds three computed columns per row for the dashboard. `ANIO` and `MES` (the first day of the month) serve time series and yearly comparisons, and `ENTIDAD_ISO` holds the ISO 3166-2 code of the state, which Data Studio recognizes on maps without confusing the State of Mexico with the country. No column stores a price, because an average price cannot be summed across rows and has to be computed at query time.
 
-La vista y sus consultas están en las secciones 3 y 4 de [`sql/farma_analytics.sql`](sql/farma_analytics.sql). Estos objetivos también trabajan sobre el proyecto de GCP.
+The view and its queries are in sections 3 and 4 of [`sql/farma_analytics.sql`](sql/farma_analytics.sql). These targets also work on the GCP project.
 
-1. Crea o reemplaza la vista.
+1. Create or replace the view.
 
    ```bash
    make bq-vista
    ```
 
-   La sentencia pasa antes por un dry run. Reemplazar la vista no borra datos, porque una vista lógica no los guarda. Al terminar se ejecutan los siete chequeos y la comparación de los metadatos de la vista (tipo, dialecto, columnas y descripciones), y la salida acaba en `Chequeos: 7 de 7 en 0 filas. Metadatos: 0 diferencias.` Si cambias la vista, basta con repetir este comando sin recargar las tablas.
+   The statement goes through a dry run first. Replacing the view deletes no data, because a logical view stores none. Then the seven checks run along with the comparison of the view metadata (type, dialect, columns and descriptions), and the output ends with `Chequeos: 7 de 7 en 0 filas. Metadatos: 0 diferencias.` If you change the view, running this command again is enough, with no need to reload the tables.
 
-2. Responde las tres preguntas comerciales.
+2. Answer the three business questions.
 
    ```bash
    make bq-consultas
    ```
 
-   Primero calcula las filas y los totales de la vista, y se detiene si la vista está vacía. Después ejecuta las cuatro consultas de la sección 4, cada una con su dry run, e imprime las respuestas completas de las dos primeras y las 20 primeras filas de las de precio, que tienen cientos. La consola de BigQuery las muestra completas. Por último comprueba que las cifras cuadran entre consultas y con el total de la vista, y termina con `Cifras cruzadas: 5 de 5 cuadran.`
+   It first computes the rows and totals of the view, and stops if the view is empty. Then it runs the four queries of section 4, each with its dry run, and prints the full answers of the first two and the first 20 rows of the price queries, which have hundreds. The BigQuery console shows them in full. Finally it checks that the figures agree across queries and with the view total, and ends with `Cifras cruzadas: 5 de 5 cuadran.`
 
-Las métricas tienen una sola definición, la misma en el SQL, el dashboard y los documentos:
+Each metric has a single definition, the same in the SQL, the dashboard and the documents:
 
-| Métrica | Definición |
+| Metric | Definition |
 |---|---|
-| Monto total | `SUM(IMPORTE)` |
-| Piezas | `SUM(PIEZAS)` |
-| Precio promedio | `SUM(IMPORTE) / SUM(PIEZAS)`, con `SAFE_DIVIDE` en SQL |
-| Importe promedio por línea | `AVG(IMPORTE)` |
-| Participación | valor del grupo entre el total de la vista, en porcentaje |
+| Total amount | `SUM(IMPORTE)` |
+| Units | `SUM(PIEZAS)` |
+| Average price | `SUM(IMPORTE) / SUM(PIEZAS)`, with `SAFE_DIVIDE` in SQL |
+| Average amount per line | `AVG(IMPORTE)` |
+| Share | value of the group over the view total, as a percentage |
 
-Algunas preguntas admiten más de una lectura. Estas son las que usamos y la razón de cada una:
+Some questions allow more than one reading. These are the ones we use and the reason for each:
 
-| Duda | Definición | Razón |
+| Question | Definition | Reason |
 |---|---|---|
-| Qué es volumen de compra | `SUM(IMPORTE)`, y la misma consulta muestra `SUM(PIEZAS)` como alternativa | Es la medida de la pregunta de las moléculas y la del gasto del dashboard |
-| Institución y entidad juntas o por separado | Las tres lecturas: la combinación, la institución sola y la entidad sola | Las tres salen de una sola lectura de la vista con `GROUPING SETS` |
-| Qué fabricante se usa en el precio | `FABRICANTE_COMPRA`, y otra consulta da el precio por `FABRICANTE_CATALOGO` | Es quien vendió a ese precio. Cada molécula tiene un solo fabricante de referencia, así que la alternativa equivale al precio de la molécula en todo el mercado |
-| Empates | En las 5 moléculas, el orden alfabético decide quién entra en el corte. En los líderes se usa `RANK`, que muestra a todos los empatados | La primera respuesta tiene que tener 5 filas exactas, y la segunda no debe esconder un empate |
+| What purchase volume means | `SUM(IMPORTE)`, and the same query shows `SUM(PIEZAS)` as an alternative | It is the measure of the molecules question and the spend measure of the dashboard |
+| Institution and state together or apart | All three readings: the pair, the institution alone and the state alone | All three come from a single read of the view with `GROUPING SETS` |
+| Which manufacturer the price uses | `FABRICANTE_COMPRA`, and another query gives the price by `FABRICANTE_CATALOGO` | It is who sold at that price. Each molecule has one reference manufacturer, so the alternative equals the price of the molecule across the market |
+| Ties | In the top 5 molecules, alphabetical order decides who makes the cut. The leaders use `RANK`, which shows every tied row | The first answer must have exactly 5 rows, and the second must not hide a tie |
 
-El precio promedio por molécula mezcla presentaciones con envases de distinto tamaño, porque la pregunta pide el precio por molécula y no por `CLAVE`. Para comparar presentaciones hay que agrupar por `CLAVE` o por `PRESENTACION`.
+The average price by molecule mixes presentations with different pack sizes, because the question asks for the price by molecule and not by `CLAVE`. To compare presentations, group by `CLAVE` or by `PRESENTACION`.
 
-## Controles de costo
+## Dashboard figures
 
-El repositorio limita el gasto en tres capas, porque ninguna cubre todos los casos por sí sola.
+The full dashboard specification, with fields, colors, grid, controls and what was checked in the product, is in [`docs/dashboard.md`](docs/dashboard.md). Data Studio is not versioned as code, so that document is the reference to review or rebuild it.
 
-El archivo [`.bigqueryrc`](.bigqueryrc) fija un límite de 1 GiB facturado por consulta. Si la estimación de una consulta lo supera, BigQuery la rechaza antes de ejecutarla y no cobra nada. Este límite solo protege las consultas que lanza `bq` desde el `Makefile`, ya que la consola de BigQuery y las bibliotecas de Python no leen ese archivo. Cambiarlo es editar una línea y pasa por un PR como cualquier otro cambio.
+The dashboard reads from a single reusable data source connected to the `v_compras_farma_completa` view, with no custom queries. The source uses the owner's credentials, so whoever opens the link sees the data without BigQuery access, and it caches the data for 12 hours. The average price is computed in the source as `SUM(Importe) / NULLIF(SUM(Piezas), 0)`, with the same definition as the SQL.
 
-La cuota diaria de consultas del proyecto (`make gcp-quota`) cubre todo lo demás. Su valor está en `.env` como `QUERY_QUOTA_GIB_PER_DAY`, con 100 GiB por día en el ejemplo. Es un tope duro: al alcanzarlo, BigQuery devuelve el error `usageQuotaExceeded` a todas las consultas del proyecto hasta la medianoche del horario del Pacífico. Para ajustarla necesitas el rol Quota Administrator (`roles/servicemanagement.quotaAdmin`).
+This target checks the dashboard figures against the view, and also works on the GCP project:
 
-La alerta de presupuesto (`make gcp-budget`) avisa por correo a los administradores de la cuenta de facturación cuando el gasto del mes llega al 50 %, al 90 % y al 100 % de `BUDGET_AMOUNT`. Avisa pero no detiene el gasto. Para crearla necesitas el rol Billing Account Administrator o Billing Account Costs Manager.
+```bash
+make bq-dashboard
+```
 
-Con el volumen de este proyecto, el uso cabe en el nivel gratuito de BigQuery y estos controles quedan como red de seguridad. Puedes comprobarlos a mano en la consola de Google Cloud. El presupuesto está en Facturación, en la sección Presupuestos y alertas. La cuota está en IAM y administración, en Cuotas y límites del sistema, buscando "Query usage per day" de la API de BigQuery.
+It runs the queries in [`sql/dashboard/`](sql/dashboard) with dry runs and labels, prints what the cards, the spend by state, the share by institution and the top 10 must show, and ends with `Cifras cruzadas del dashboard: 4 de 4 cuadran.` Its variables mirror the dashboard controls: `DESDE` and `HASTA` for the period, and `ENTIDAD`, `INSTITUCION`, `GRUPO_INSTITUCIONAL`, `GRUPO_TERAPEUTICO` and `MOLECULA` for the lists, with several values separated by commas. For example, this gives what the dashboard shows with Jalisco selected:
 
-Si el proyecto se queda sin cuenta de facturación, BigQuery pasa a modo sandbox. En ese modo no hay presupuesto ni cuota que aplicar, y las tablas y vistas caducan a los 60 días. Por eso este repositorio usa un proyecto con facturación.
+```bash
+make bq-dashboard ENTIDAD=Jalisco
+```
 
-### Dialecto y archivo de configuración de bq
+The cards compare the chosen range with the same dates a year earlier, and the target computes that period the same way Data Studio does. The log of the comparisons between the dashboard and the SQL is in the "Verificación contra el SQL" section of `docs/dashboard.md`.
 
-`make gcp-dialect` fija la opción `default_sql_dialect_option = 'only_google_sql'` del proyecto, y desde ese momento BigQuery rechaza los jobs en legacy SQL que llegan por el CLI o la API. La documentación no lo garantiza para la consola, así que lo comprobamos el 8 de octubre de 2026: una consulta con el prefijo `#legacySQL` en la consola también se rechaza, con el mensaje "Legacy SQL queries are not supported in this project". La opción es regional, así que se aplica en la región de la location de `.bigqueryrc` (`region-us`). Antes de ejecutar el `ALTER PROJECT`, el objetivo lo valida con un dry run y se detiene si la validación falla. Para cambiar opciones del proyecto necesitas el rol BigQuery Admin.
+Only the report owner can edit it, change its source or share it. The repository stores no Data Studio credentials.
 
-El `Makefile` exporta `BIGQUERYRC` para que `bq` use el `.bigqueryrc` del repositorio. Si ejecutas `bq` fuera de `make`, usará tu `~/.bigqueryrc` personal a menos que antes exportes la variable:
+The queries Data Studio sends do not go through `.bigqueryrc`, so its byte limit does not cover them. The daily project quota protects them (see [Cost controls](#cost-controls)). Each one carries the `requestor` label (with the value `looker_studio`), `looker_studio_report_id` and `looker_studio_datasource_id`, which separate its cost in `INFORMATION_SCHEMA.JOBS`.
+
+## Cost controls
+
+The repository limits spending in three layers, because none of them covers every case on its own.
+
+The [`.bigqueryrc`](.bigqueryrc) file sets a limit of 1 GiB billed per query. If the estimate of a query goes above it, BigQuery rejects it before running it and charges nothing. This limit only protects the queries that `bq` sends from the `Makefile`, since the BigQuery console and the Python libraries do not read that file. Changing it means editing one line, and it goes through a pull request like any other change.
+
+The daily query quota of the project (`make gcp-quota`) covers everything else. Its value is in `.env` as `QUERY_QUOTA_GIB_PER_DAY`, with 100 GiB per day in the example. It is a hard cap: once reached, BigQuery returns the `usageQuotaExceeded` error to every query of the project until midnight Pacific time. To change it you need the Quota Administrator role (`roles/servicemanagement.quotaAdmin`).
+
+The budget alert (`make gcp-budget`) emails the billing account administrators when the monthly spend reaches 50 %, 90 % and 100 % of `BUDGET_AMOUNT`. It warns but does not stop spending. To create it you need the Billing Account Administrator or Billing Account Costs Manager role.
+
+With the volume of this project, usage fits in the BigQuery free tier and these controls act as a safety net. You can check them by hand in the Google Cloud console. The budget is under Billing, in Budgets and alerts. The quota is under IAM and admin, in Quotas and system limits, by searching for "Query usage per day" of the BigQuery API.
+
+If the project loses its billing account, BigQuery switches to sandbox mode. In that mode there is no budget or quota to apply, and tables and views expire after 60 days. That is why this repository uses a project with billing.
+
+### SQL dialect and bq configuration
+
+`make gcp-dialect` sets the project option `default_sql_dialect_option = 'only_google_sql'`, and from then on BigQuery rejects legacy SQL jobs that arrive through the CLI or the API. The documentation does not guarantee it for the console, so we tested it on October 8, 2026: a query with the `#legacySQL` prefix in the console is rejected too, with the message "Legacy SQL queries are not supported in this project". The option is regional, so it applies to the region of the `.bigqueryrc` location (`region-us`). Before running the `ALTER PROJECT`, the target validates it with a dry run and stops if the validation fails. To change project options you need the BigQuery Admin role.
+
+The `Makefile` exports `BIGQUERYRC` so that `bq` uses the `.bigqueryrc` of the repository. If you run `bq` outside `make`, it uses your personal `~/.bigqueryrc` unless you export the variable first:
 
 ```bash
 export BIGQUERYRC="$PWD/.bigqueryrc"
 ```
 
-## Calidad
+## Quality
 
-Cada commit pasa por las revisiones automáticas que instala `make setup-dev` con pre-commit. SQLFluff revisa el estilo de los archivos `.sql` con las reglas de [`.sqlfluff`](.sqlfluff), Ruff revisa el estilo y el formato del código Python con la configuración de [`pyproject.toml`](pyproject.toml), y otro hook bloquea los archivos `.env`, las claves de cuenta de servicio y los demás archivos de credenciales. GitHub Actions ejecuta las mismas revisiones y las pruebas en cada pull request hacia `main`, sin acceso a GCP. Los checks avisan en el PR, pero no impiden el merge.
+Every commit goes through the automatic checks that `make setup-dev` installs with pre-commit. SQLFluff checks the style of the `.sql` files with the rules in [`.sqlfluff`](.sqlfluff), Ruff checks the style and format of the Python code with the configuration in [`pyproject.toml`](pyproject.toml), and another hook blocks `.env` files, service account keys and other credential files. GitHub Actions runs the same checks and the tests on every pull request to `main`, with no access to GCP. The checks report on the pull request but do not block the merge.
 
-Estos objetivos ejecutan las revisiones a mano:
+These targets run the checks by hand:
 
-- `make lint` ejecuta todas las revisiones de pre-commit sobre el repositorio, con el mismo comando que usa GitHub Actions.
-- `make lint-sql` revisa solo el estilo SQL.
-- `make test` ejecuta las pruebas de los scripts, del generador de datos y del programa de carga, que no necesitan red ni credenciales.
-- `make lint-prosa` revisa el README y la carpeta `docs/`.
+- `make lint` runs every pre-commit check on the repository, with the same command GitHub Actions uses.
+- `make lint-sql` checks only the SQL style.
+- `make test` runs the tests of the scripts, the data generator and the load program, which need no network or credentials.
+- `make lint-prosa` checks the README and the `docs/` folder.
 
-El lint de prosa no forma parte de los hooks. Conviene ejecutarlo antes de abrir cada PR, y también sobre el mensaje del commit y la descripción del PR, que el script acepta por la entrada estándar:
+The prose linter is not part of the hooks. Run it before opening each pull request, and also on the commit message and the pull request description, which the script reads from standard input:
 
 ```bash
 git log -1 --format=%B | scripts/lint_prosa.sh -
 ```
 
-La lista de muletillas está en [`scripts/muletillas.txt`](scripts/muletillas.txt) y se amplía añadiendo una línea. Los términos técnicos permitidos y los nombres propios que pueden ir en mayúscula en un título están en [`scripts/prosa_excepciones.txt`](scripts/prosa_excepciones.txt). Para un falso positivo puntual, la línea se marca con el comentario `<!-- lint-prosa: ignorar -->`.
+The list of filler words is in [`scripts/muletillas.txt`](scripts/muletillas.txt) and grows by adding a line. The allowed technical terms and the proper nouns that can be capitalized in a heading are in [`scripts/prosa_excepciones.txt`](scripts/prosa_excepciones.txt). For a one-off false positive, mark the line with the comment `<!-- lint-prosa: ignorar -->`.
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [`docs/datos_sinteticos.md`](docs/datos_sinteticos.md) | Fields, injected patterns and sources of the synthetic data |
+| [`docs/dashboard.md`](docs/dashboard.md) | Dashboard specification and its checks against the SQL |
+| [`docs/trazabilidad.md`](docs/trazabilidad.md) | Traceability matrix from each requirement to its evidence |
+| [`specs/`](specs) | Specification, plan and tasks of each feature |
+
+## License
+
+[MIT](LICENSE)

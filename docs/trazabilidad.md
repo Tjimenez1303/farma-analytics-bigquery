@@ -34,6 +34,24 @@ Cada requisito del proyecto aparece con el artefacto que lo cumple y la forma de
 | Las 5 moléculas con más `IMPORTE` | Primera consulta de la sección 4 | `tests/warehouse/test_queries_sql.py`. En BigQuery, `make bq-consultas` comprueba que su importe coincide con la consulta de precios |
 | La institución y la entidad con mayor volumen de compra | Segunda consulta de la sección 4 | `tests/warehouse/test_queries_sql.py`. En BigQuery, `make bq-consultas` comprueba sus participaciones y que el líder de la combinación no supera a los otros dos |
 | El precio promedio por pieza por molécula y fabricante | Tercera y cuarta consultas de la sección 4 | `tests/warehouse/test_queries_sql.py`. En BigQuery, `make bq-consultas` comprueba que sus importes y piezas suman el total de la vista |
-| Resolver las ambigüedades de las preguntas | Comentarios de cada consulta y la sección "Vista y consultas analíticas" del [README](../README.md) | Revisión de las definiciones y `make lint-prosa` |
+| Resolver las ambigüedades de las preguntas | Comentarios de cada consulta y la sección "View and analytical queries" del [README](../README.md) | Revisión de las definiciones y `make lint-prosa` |
 | Comprobar la vista después de cada cambio | [`sql/checks/07_reconciliacion_vista.sql`](../sql/checks/07_reconciliacion_vista.sql) y su caso negativo | `tests/warehouse/test_checks_sql.py` y `tests/warehouse/test_negative_checks.py`. En BigQuery, `make bq-checks-negativos` detecta 7 de 7 casos sin facturar bytes |
 
+
+## Fase 3: dashboard
+
+| Requisito | Artefacto | Verificación |
+|---|---|---|
+| Conectar el dashboard a la vista | Fuente reutilizable de Data Studio sobre `v_compras_farma_completa`, con credenciales del propietario, descrita en [`docs/dashboard.md`](dashboard.md) | `tests/docs/test_dashboard_spec.py` compara la tabla de campos con las 22 columnas de la vista. El enlace de lectura abre con datos sin sesión de Google (sección "Compartir") |
+| Filtro de fechas | Control Periodo sobre `FECHA`, con 2025 como rango fijo por defecto | `make bq-dashboard DESDE=... HASTA=...` reproduce cualquier rango. Registro de `docs/dashboard.md`: el botón Restablecer filtros devuelve 2025 |
+| Filtro de entidad | Lista Entidad con búsqueda y selección múltiple | `make bq-dashboard ENTIDAD=Jalisco` coincide con el tablero en tarjetas, entidades, instituciones y top 10 (registro de `docs/dashboard.md`) |
+| Filtro de institución y grupo institucional | Listas Institución y Grupo institucional, en cascada | `make bq-dashboard INSTITUCION=... GRUPO_INSTITUCIONAL=...`. Registro de `docs/dashboard.md`: con "Fuerzas Armadas y PEMEX", Institución ofrece PEMEX, SEDENA y SEMAR |
+| Filtro de grupo terapéutico y molécula | Listas Grupo terapéutico y Molécula, en cascada | `make bq-dashboard GRUPO_TERAPEUTICO=... MOLECULA=...`. Registro de `docs/dashboard.md`: con Oncología, Molécula solo ofrece moléculas oncológicas |
+| KPI Monto Total Comprado | Tarjeta con `SUM(Importe)` y comparación con el año anterior | `make bq-dashboard`: 14 941.7 M y +9.1 % en 2025, igual que el tablero |
+| KPI Total de Piezas Adjudicadas | Tarjeta con `SUM(Piezas)` y comparación con el año anterior | `make bq-dashboard`: 28.55 M y +6.9 % en 2025, igual que el tablero |
+| KPI Precio Promedio General por Pieza | Tarjeta con el campo calculado `SUM(Importe) / NULLIF(SUM(Piezas), 0)` | `tests/docs/test_dashboard_spec.py` comprueba que ninguna fórmula usa `AVG`. `make bq-dashboard`: 523.42 y +2.1 % en 2025, igual que el tablero |
+| Gasto por entidad | Barras horizontales de las 32 entidades, con su abreviatura del INEGI, y mapa de México como complemento | `make bq-dashboard`: las 32 entidades coinciden en orden e importe. `tests/docs/test_dashboard_spec.py` comprueba la tabla de abreviaturas contra el catálogo |
+| Participación por institución | Tabla con barras y "Porcentaje respecto al total" | `make bq-dashboard`: los 7 porcentajes coinciden y suman 100 %, también con Jalisco elegido |
+| Top 10 de moléculas, entendido como los 10 pares molécula-fabricante con más importe (principio VI) | Tabla con Molécula, Fabricante, Piezas, Importe y Precio Promedio | `make bq-dashboard`: las 10 filas coinciden en orden, piezas, importe y precio, sin filtros y con Jalisco |
+| Diseño claro y accesible | Tema, colores, rejilla y textos de `docs/dashboard.md` | `tests/docs/test_dashboard_spec.py` recalcula los contrastes con la fórmula de WCAG 2.1 y cuenta los tamaños de letra. Revisión del principio VI y prueba en escala de grises (registro de `docs/dashboard.md`) |
+| Compartir el dashboard con un enlace de lectura | "Cualquier persona con el enlace puede ver", con el enlace en el README y en `docs/dashboard.md` | Comprobación sin sesión en el navegador integrado y en una ventana privada (sección "Compartir") |

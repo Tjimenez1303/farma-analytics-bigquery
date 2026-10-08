@@ -35,18 +35,18 @@ class QueryResult:
     columns: tuple[str, ...] = ()  # SELECT order, since bq --format=json sorts the keys of each row
 
 
-def _number(value: object) -> Decimal:
+def number(value: object) -> Decimal:
     """Exact Decimal of a bq value, whether it arrives as text or as a JSON number."""
     return Decimal(str(value))
 
 
-def _run(sql: str, label: str) -> QueryResult | str:
-    """Dry run, then the labeled query. Returns an error message when either fails."""
-    dry = bq.execute(bq.dry_run_query(sql))
+def run(sql: str, label: str, params: Sequence[str] = ()) -> QueryResult | str:
+    """Dry run, then the labeled query, with the same parameters. Returns an error message."""
+    dry = bq.execute(bq.dry_run_query(sql, params))
     if not dry.ok:
         return f"{label}: el dry run falló y la consulta no se ejecuta.\n{dry.output}"
     estimate = bq.estimated_bytes(dry.output)
-    done = bq.execute(bq.run_query(sql, as_json=True, max_rows=MAX_ROWS))
+    done = bq.execute(bq.run_query(sql, params, as_json=True, max_rows=MAX_ROWS))
     if not done.ok:
         return f"{label}: la consulta falló.\n{done.output}"
     text = done.stdout.strip()
@@ -58,11 +58,11 @@ def _run(sql: str, label: str) -> QueryResult | str:
 
 def view_totals() -> dict | str:
     """Rows, IMPORTE and PIEZAS of the view, or an error when it fails or the view is empty."""
-    result = _run(TOTALS_SQL.read_text(encoding="utf-8"), "Totales de la vista")
+    result = run(TOTALS_SQL.read_text(encoding="utf-8"), "Totales de la vista")
     if isinstance(result, str):
         return result
     totals = result.rows[0] if result.rows else {"FILAS": 0}
-    if _number(totals["FILAS"]) == 0:
+    if number(totals["FILAS"]) == 0:
         return "La vista no tiene filas: ejecuta 'make bq-load'."
     return totals
 
@@ -71,7 +71,7 @@ def run_section(statements: Sequence[Statement]) -> list[QueryResult] | str:
     """The four answers in QUERY_IDS order. The first error stops the run."""
     results: list[QueryResult] = []
     for query_id, statement in zip(QUERY_IDS, statements, strict=True):
-        result = _run(statement.text, query_id)
+        result = run(statement.text, query_id)
         if isinstance(result, str):
             return result
         columns = tuple(output_columns(statement.text))
@@ -79,7 +79,7 @@ def run_section(statements: Sequence[Statement]) -> list[QueryResult] | str:
     return results
 
 
-def _format_rows(rows: Rows, columns: Sequence[str]) -> str:
+def format_rows(rows: Rows, columns: Sequence[str]) -> str:
     """Text table with numbers right-aligned and NULL for missing values."""
     cells = [["NULL" if row.get(c) is None else str(row[c]) for c in columns] for row in rows]
     numeric = [all(_is_number(r[i]) for r in cells) for i in range(len(columns))]
@@ -95,8 +95,11 @@ def _format_rows(rows: Rows, columns: Sequence[str]) -> str:
 
 
 def _is_number(text: str) -> bool:
+    """Whether a cell is a number, also with thousands commas, a % sign, or "-" for no data."""
+    if text in ("-", "NULL"):
+        return True
     try:
-        Decimal(text)
+        Decimal(text.replace(",", "").removesuffix(" %"))
     except ArithmeticError:
         return False
     return True
@@ -115,7 +118,7 @@ def format_result(result: QueryResult) -> str:
     if not shown:
         return header
     columns = result.columns or tuple(shown[0])
-    return f"{header}\n{_format_rows(shown, columns)}"
+    return f"{header}\n{format_rows(shown, columns)}"
 
 
 def _diff(rule: str, detail: str, expected: Decimal, obtained: Decimal) -> CheckResult:
@@ -123,7 +126,7 @@ def _diff(rule: str, detail: str, expected: Decimal, obtained: Decimal) -> Check
 
 
 def _sum(rows: Rows, column: str) -> Decimal:
-    return sum((_number(row[column]) for row in rows), Decimal(0))
+    return sum((number(row[column]) for row in rows), Decimal(0))
 
 
 def _totals_rule(rule: str, query_id: str, rows: Rows, totals: Mapping) -> list[CheckResult]:
@@ -131,9 +134,9 @@ def _totals_rule(rule: str, query_id: str, rows: Rows, totals: Mapping) -> list[
     diffs = []
     for column, total in (("IMPORTE_TOTAL", "IMPORTE"), ("PIEZAS_TOTALES", "PIEZAS")):
         obtained = _sum(rows, column)
-        if obtained != _number(totals[total]):
+        if obtained != number(totals[total]):
             detail = f"{query_id}: suma de {column} frente al total de la vista"
-            diffs.append(_diff(rule, detail, _number(totals[total]), obtained))
+            diffs.append(_diff(rule, detail, number(totals[total]), obtained))
     return diffs
 
 
@@ -144,9 +147,9 @@ def _top_molecules_rule(p1: Rows, p3: Rows) -> list[CheckResult]:
         rows = [r for r in p3 if r["MOLECULA"] == row["MOLECULA"]]
         for column in ("IMPORTE_TOTAL", "PIEZAS_TOTALES"):
             expected = _sum(rows, column)
-            if _number(row[column]) != expected:
+            if number(row[column]) != expected:
                 detail = f"P1 {row['MOLECULA']}: {column} frente a sus filas de P3"
-                diffs.append(_diff("C3", detail, expected, _number(row[column])))
+                diffs.append(_diff("C3", detail, expected, number(row[column])))
     return diffs
 
 
@@ -154,9 +157,9 @@ def _share_rule(query_id: str, rows: Rows, column: str, totals: Mapping) -> list
     """C4: each share is 100 x value / view total of its measure, within SHARE_TOLERANCE."""
     diffs = []
     for row in rows:
-        total = _number(totals[row.get("MEDIDA", "IMPORTE")])
-        expected = 100 * _number(row[column]) / total
-        obtained = _number(row["PARTICIPACION_PCT"])
+        total = number(totals[row.get("MEDIDA", "IMPORTE")])
+        expected = 100 * number(row[column]) / total
+        obtained = number(row["PARTICIPACION_PCT"])
         if abs(obtained - expected) > SHARE_TOLERANCE:
             detail = f"{query_id}: participación frente a 100 × valor / total de la vista"
             diffs.append(_diff("C4", detail, expected.quantize(Decimal("0.0001")), obtained))
@@ -167,7 +170,7 @@ def _leaders_rule(p2: Rows) -> list[CheckResult]:
     """C5: the institution-entity leader never exceeds the institution or the entity leader."""
     diffs = []
     for measure in sorted({row["MEDIDA"] for row in p2}):
-        leaders = {row["NIVEL"]: _number(row["VALOR"]) for row in p2 if row["MEDIDA"] == measure}
+        leaders = {row["NIVEL"]: number(row["VALOR"]) for row in p2 if row["MEDIDA"] == measure}
         pair = leaders.get("INSTITUCION Y ENTIDAD")
         for level in ("INSTITUCION", "ENTIDAD"):
             if pair is not None and level in leaders and pair > leaders[level]:
