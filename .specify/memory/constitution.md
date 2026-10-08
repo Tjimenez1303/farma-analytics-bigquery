@@ -387,7 +387,9 @@ Cleveland & McGill y Knaflic, junto con WCAG 2.1.
     "Common Pitfalls in Dashboard Design", error 9), con la rejilla fijada antes de maquetar y los
     componentes alineados.
 - Alta proporción de tinta dedicada a los datos:
-  - sin 3D, sombras, degradados ni fondos con imagen;
+  - sin 3D, sombras, degradados ni fondos con imagen. El degradado prohibido es el decorativo
+    (fondos, barras o componentes con efecto). Una escala de color continua que codifica una medida,
+    como la de un mapa coloreado por valor, no es decoración y se admite;
   - barras que empiezan en cero y sin doble eje;
   - categorías ordenadas por la métrica.
 - Color:
@@ -401,7 +403,10 @@ Cleveland & McGill y Knaflic, junto con WCAG 2.1.
   - contraste WCAG 2.1 AA: al menos 4.5:1 en texto y 3:1 en elementos gráficos;
   - el color nunca es el único canal;
   - una sola familia tipográfica con 3 tamaños o menos;
-  - etiquetas directas en lugar de leyendas, y sin texto rotado en los ejes.
+  - etiquetas directas en lugar de leyendas, y sin texto rotado en los ejes. Se admite una leyenda
+    cuando no caben etiquetas directas en cada elemento (por ejemplo, la escala de color de un mapa
+    coloreado por valor con entidades pequeñas), siempre que los valores exactos estén también en
+    otro visual o en el tooltip.
 - Transparencia:
   - un subtítulo indica la fuente (datos sintéticos), el periodo, la fecha de corte y la definición
     de precio promedio ponderado;
@@ -851,4 +856,4 @@ documentación oficial el 2026-10-07.
     - Alonso Simón et al. (UCM, RAEL 2025) sobre rasgos de GPT en español;
     - el *Diccionario panhispánico de dudas*.
 
-**Version**: 1.4.2 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
+**Version**: 1.4.3 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
