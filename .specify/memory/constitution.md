@@ -732,8 +732,25 @@ otra vez después del diseño.
 - README y ADR: cumplen el principio IX.
 - Video: recorre el quickstart de principio a fin, con un guion que cumple el principio IX.
 
-**Git**: Conventional Commits, cambios pequeños y una rama por feature. Los commits MUST NOT
-contener secretos ni el PDF confidencial.
+**Git**
+
+- Conventional Commits, cambios pequeños y una rama por feature. Los commits MUST NOT contener
+  secretos ni el PDF confidencial.
+- Todo cambio MUST entrar a `main` mediante un pull request. Los commits y push directos a `main`
+  están prohibidos, incluso para cambios de documentación o de gobernanza.
+- Los PR MUST integrarse con squash merge, de modo que cada PR queda como un único commit en `main`
+  y el historial se mantiene lineal.
+  - El título del PR MUST seguir Conventional Commits, porque se convierte en el mensaje del commit
+    resultante.
+  - La descripción del PR cumple el principio IX.
+- Antes de integrar un PR:
+  - los chequeos disponibles MUST pasar (SQLFluff, pytest, `scripts/lint_prosa.sh` y dry run);
+  - la rama se actualiza con `main` si quedó atrás.
+- Después del merge la rama remota se elimina.
+- SHOULD configurarse el repositorio para hacer cumplir estas reglas:
+  - solo squash merge;
+  - borrado automático de ramas;
+  - protección de `main`.
 
 ## Estándares BigQuery Verificados
 
@@ -825,4 +842,4 @@ documentación oficial el 2026-10-07.
     - Alonso Simón et al. (UCM, RAEL 2025) sobre rasgos de GPT en español;
     - el *Diccionario panhispánico de dudas*.
 
-**Version**: 1.1.1 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.2.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
