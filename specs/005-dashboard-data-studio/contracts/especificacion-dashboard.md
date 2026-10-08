@@ -25,7 +25,8 @@ están permitidas. Su contenido sale de [data-model.md](../data-model.md) y de
 7. **Tarjetas.** Métrica, unidad, formato y comparación de cada una, y cómo se marca el sentido del
    cambio (flechas o la alternativa de R5).
 8. **Gráficos.** Una subsección por gráfico con tipo, campos, orden, límite, etiquetas, color, título
-   y cross-filtering.
+   y cross-filtering. La del top 10 incluye la definición de "Top 10 de moléculas" (pares
+   molécula-fabricante) y cuántas moléculas distintas tiene en el estado inicial.
 9. **Recuadro de hallazgos.** El texto literal publicado, con el estado de filtros y la consulta de
    origen de cada cifra.
 10. **Comportamientos comprobados en el producto.** Una tabla con lo que la documentación no

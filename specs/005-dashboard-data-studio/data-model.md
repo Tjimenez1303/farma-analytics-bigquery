@@ -114,7 +114,7 @@ una, se indica junto al visual afectado (FR-010).
 |---|---|---|---|---|
 | Monto Total Comprado | Importe (`SUM(IMPORTE)`) | millones de pesos (MXN) | Compacto, 1 decimal | Previous year, cambio en %, 1 decimal |
 | Total de Piezas Adjudicadas | Piezas (`SUM(PIEZAS)`) | millones de piezas | Compacto, 2 decimales | Previous year, cambio en %, 1 decimal |
-| Precio Promedio General por Pieza | Precio Promedio | pesos (MXN) por pieza | 2 decimales, sin compactar | Previous year, cambio en %, 1 decimal |
+| Precio Promedio General por Pieza | Precio Promedio | pesos (MXN) por pieza | Compacto, 2 decimales (por debajo de mil no cambia) | Previous year, cambio en %, 1 decimal |
 
 Estado sin datos en el periodo de referencia: "Missing data" en "-" (R5).
 
@@ -123,7 +123,7 @@ Estado sin datos en el periodo de referencia: "Missing data" en "-" (R5).
 | Componente | Tipo | Dimensión | Métrica | Orden | Límite | Etiquetas | Color |
 |---|---|---|---|---|---|---|---|
 | Gasto por entidad | Bar chart horizontal | Entidad | Importe | Importe descendente | 32 barras, sin "Others" | Valor compacto | `#0072B2` |
-| Mapa de gasto por entidad | Geo chart, zoom México | Entidad ISO | Importe | No aplica | 32 áreas | Tooltip | Escala `#DCEBF5` a `#0072B2` |
+| Mapa de gasto por entidad | Geo chart, zoom México, con leyenda de escala | Entidad ISO | Importe | No aplica | 32 áreas | Tooltip | Escala `#DCEBF5` a `#0072B2` |
 | Participación por institución | Bar chart horizontal | Institución | Importe, Percent of total | Descendente | 7 barras, sin "Others" | % con 1 decimal | `#0072B2` |
 | Top 10 molécula-fabricante | Table | Molécula, Fabricante | Piezas, Importe, Precio Promedio | Importe descendente, después Molécula | Top N 10, sin "Others" | Números a la derecha | Texto `#202124` |
 
@@ -132,7 +132,18 @@ Títulos de componentes (descriptivos, aclaración de la spec):
 - "Gasto por entidad, millones de MXN";
 - "Gasto por entidad en el mapa, millones de MXN";
 - "Participación por institución, % del importe";
-- "Top 10 pares molécula-fabricante por importe".
+- "Top 10 pares molécula-fabricante por importe". Una molécula puede salir con varios fabricantes
+  (en 2025, 10 filas con 6 moléculas distintas), que es la definición de "Top 10 de moléculas" del
+  principio VI.
+
+Alternativas registradas, que solo se aplican si la prueba en el producto las exige:
+
+| Riesgo | Alternativa |
+|---|---|
+| La tarjeta no dibuja ▲▼ | Campo calculado de texto con ▲ o ▼ por tarjeta, agrupado aparte del control de fechas y con la excepción "▲▼ compara 2025 con 2024" visible (R5) |
+| El gráfico de barras no admite "Percent of total" | Tabla de Institución con la columna en "Percent of total" de tipo "Bar" (R7) |
+| El botón no devuelve el rango de fechas | Botón *Navigation* que recarga el propio informe (R4) |
+| El valor de la tarjeta no admite 26 px | Ajustar los demás tamaños para mantener 3 (R10) |
 
 ## Recuadro de hallazgos clave
 

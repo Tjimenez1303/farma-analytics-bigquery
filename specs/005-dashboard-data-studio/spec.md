@@ -361,8 +361,10 @@ a las cifras de verificación sin pasos no escritos.
   `ENTIDAD`, ordenado de mayor a menor, con el eje desde cero y la etiqueta del valor en cada barra.
   Ninguna entidad con compras MUST quedar oculta sin que el gráfico lo indique.
 - **FR-017**: Un mapa de México con `SUM(IMPORTE)` por `ENTIDAD_ISO` MUST complementar las barras de
-  FR-016 en la página principal, con un solo tono secuencial y el importe en el tooltip. MUST NOT ser
-  la única representación del gasto por entidad, MUST NOT reducir las barras de FR-016 hasta que sus
+  FR-016 en la página principal, con un solo tono secuencial, una leyenda con la escala de color y
+  el importe en el tooltip. La leyenda se admite porque en un mapa no caben etiquetas directas y los
+  valores exactos están en las barras de FR-016 (constitución v1.4.3). MUST NOT ser la única
+  representación del gasto por entidad, MUST NOT reducir las barras de FR-016 hasta que sus
   etiquetas dejen de leerse y MUST obedecer los mismos controles.
 - **FR-018**: Participación por institución: MUST ser un gráfico de barras horizontales con el
   porcentaje de `SUM(IMPORTE)` por `INSTITUCION` sobre el total filtrado, ordenado de mayor a menor y
@@ -372,6 +374,10 @@ a las cifras de verificación sin pasos no escritos.
   Piezas, Importe y Precio Promedio, con exactamente 10 filas de pares molécula-fabricante ordenadas
   por Importe de mayor a menor, con un orden secundario documentado para los empates, números
   alineados a la derecha con formato consistente y un título que diga el grano molécula-fabricante.
+  Como una molécula puede aparecer con varios fabricantes, la tabla puede mostrar menos de 10
+  moléculas distintas. Esa definición de "Top 10 de moléculas" (grano molécula-fabricante, fijado
+  por el principio VI) MUST quedar escrita en la especificación del dashboard y en la matriz de
+  trazabilidad.
 - **FR-020**: Ningún gráfico MUST usar 3D, sombras, degradados, fondos con imagen ni doble eje, y las
   categorías MUST ordenarse por la métrica.
 
@@ -491,6 +497,9 @@ a las cifras de verificación sin pasos no escritos.
   los requisitos.
 
 ## Assumptions
+
+- La resolución de referencia para leer el tablero es una pantalla de 1366 px de ancho o más con el
+  modo "ajustar al ancho". En ese ancho las etiquetas de las 32 entidades tienen que leerse.
 
 - La vista `v_compras_farma_completa` está desplegada con 298 500 filas y sus 22 columnas descritas
   (feature 004). Esta feature no cambia la vista. Si la prueba de `MX-CMX` exige otro código, la

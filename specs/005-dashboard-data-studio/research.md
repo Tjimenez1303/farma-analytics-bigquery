@@ -130,8 +130,9 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
     defecto en la mayoría de conectores y no existe en las tarjetas
     (`/looker/docs/studio/chart-cross-filtering`).
 - **Por verificar al construir**: que el botón devuelve el control de fechas a 2025 y quita los
-  cross-filters. Si no devuelve las fechas, el texto del botón y la especificación lo dicen, y el
-  reinicio completo queda en el Reset del menú del lector.
+  cross-filters. Si no devuelve las fechas, la alternativa que cumple FR-011 es un botón de tipo
+  *Navigation* que abre el enlace del propio informe en la misma pestaña: al recargar el informe,
+  los controles vuelven a su valor por defecto (`explore-your-data`). Se registra cuál quedó.
 
 ## R5. Tarjetas: unidades, números compactos y comparación con ▲▼
 
@@ -150,17 +151,26 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
     (`/looker/docs/studio/set-report-date-ranges`). Previous year compara el primer trimestre de
     2025 con el de 2024, con la misma estacionalidad, mientras que Previous period lo compararía con
     el último trimestre de 2024.
-- **Riesgo**: la documentación describe el cambio solo con color y no menciona flechas. Se verifica
-  al construir. Si la tarjeta no dibuja ▲▼, la alternativa documentada es:
-  - colores de cambio separados para la visión con daltonismo (`#0072B2` frente a `#B34700`, ΔE
-    22.5 en protanopia según `validate_palette.js`, R10). Tienen una claridad parecida (5.19:1 y
-    5.50:1 sobre blanco), así que en escala de grises no se distinguen y el canal que no es color
-    tiene que existir;
-  - el signo del porcentaje ("-" en los negativos) como canal que no es color;
-  - el texto de la etiqueta de comparación personalizado ("frente al mismo periodo de 2024").
+- **Riesgo**: la documentación describe el cambio solo con color y no menciona flechas
+  (`scorecard-reference`). Se verifica al construir. Los colores de cambio están separados para la
+  visión con daltonismo (`#0072B2` frente a `#B34700`, ΔE 22.5 en protanopia según
+  `validate_palette.js`, R10), pero tienen una claridad parecida (5.19:1 y 5.50:1 sobre blanco), así
+  que en escala de grises no se distinguen. Si la tarjeta no dibuja ▲▼, la alternativa (decisión del
+  dueño en el análisis del 2026-10-08) es:
+  - un campo calculado de texto por tarjeta en la fuente, por ejemplo para el importe
+    `CASE WHEN SUM(IF(ANIO = 2025, IMPORTE, 0)) >= SUM(IF(ANIO = 2024, IMPORTE, 0)) THEN "▲" ELSE "▼" END`,
+    mostrado en una tarjeta de texto pequeña junto al cambio;
+  - como ese campo compara años fijos, su componente se agrupa aparte del control de fechas (las
+    listas desplegables lo siguen filtrando) y el tablero dice junto a él "▲▼ compara 2025 con 2024"
+    como excepción visible (FR-010);
+  - si Data Studio no admite agregados dentro del `CASE`, se para y se consulta al dueño antes de
+    otra alternativa.
+- **Previous year**: los ejemplos oficiales muestran las mismas fechas de calendario un año antes
+  (del 26 de diciembre de 2018 al 1 de enero de 2019 se compara con el 26 de diciembre de 2017 al
+  1 de enero de 2018), no 365 días (`/looker/docs/studio/set-report-date-ranges`). Es el mismo
+  periodo de referencia que calcula `make bq-dashboard`.
 - **Por verificar al construir**: qué muestra la comparación cuando el periodo de referencia no tiene
-  datos (se configura "Missing data" en "-" si aplica) y qué fechas exactas usa Previous year con un
-  año bisiesto de por medio (2024).
+  datos (se configura "Missing data" en "-" si aplica) y cómo trata el 29 de febrero.
 
 ## R6. Gasto por entidad: barras horizontales
 
@@ -187,8 +197,12 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   repetir lógica: un porcentaje del total no se puede calcular por fila en la fuente. Con 7
   instituciones, el pie queda prohibido por el principio VI (máximo 5).
 - **Nota sobre FR-004**: el porcentaje es una configuración del gráfico y no un campo de la fuente.
-  La regla "campos en la fuente" se refiere a nombres, tipos y agregaciones, que siguen viniendo de
-  la fuente.
+  Los nombres, tipos y agregaciones siguen viniendo de la fuente, y el plan lo declara como
+  apartamiento en *Complexity Tracking*.
+- **Por verificar al construir**: la página de cálculos de comparación no dice qué gráficos admiten
+  "Percent of total". Si el gráfico de barras no lo admite, la alternativa es una *Table* con
+  Institución y la métrica Importe en "Percent of total" mostrada como columna de tipo "Bar"
+  (`table-reference`), ordenada de mayor a menor, con el % visible y en las mismas coordenadas.
 
 ## R8. Top 10 molécula-fabricante: tabla
 
@@ -198,6 +212,10 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   activo. Título "Top 10 pares molécula-fabricante por importe".
 - **Rationale**: Top N con "Top rows" desactiva la paginación, "Alignment" aplica a las columnas de
   tipo Number y hay orden secundario (`table-reference`).
+- **Definición de "Top 10 de moléculas"** (decisión del dueño en el análisis del 2026-10-08): son
+  los 10 pares molécula-fabricante con más importe, como fija el principio VI. Una molécula puede
+  aparecer varias veces: en 2025 las 10 filas tienen 6 moléculas distintas. La definición va en el
+  título, en `docs/dashboard.md` y en la trazabilidad.
 - **Empates**: la consulta de verificación ordena por Importe, Molécula y Fabricante. Si Data Studio
   ordena distinto un empate exacto en el décimo lugar, la especificación lo registra. Con los datos
   actuales no hay empates (el décimo par tiene 279.5 M y el undécimo menos).
@@ -206,7 +224,10 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
 
 - **Decision**: *Geo chart* con dimensión `ENTIDAD_ISO` (Country subdivision, 1st level), zoom en
   México, métrica Importe, escala de un solo tono (mínimo `#DCEBF5`, máximo `#0072B2`), color
-  "Dataless" gris claro, leyenda de escala visible y cross-filtering activo.
+  "Dataless" gris claro, leyenda de escala visible y cross-filtering activo. La leyenda y la escala
+  continua cumplen el principio VI desde la v1.4.3: en un mapa no caben etiquetas directas en cada
+  entidad, la escala codifica el importe y no decora, y el valor exacto está en el tooltip y en las
+  barras de entidades (decisión del dueño del 2026-10-08).
 - **Rationale**:
   - la subdivisión de primer nivel acepta ISO 3166-2 o el nombre, con zoom de país, y México no está
     entre los países excluidos (`/looker/docs/studio/geo-dimension-reference`,
@@ -237,7 +258,7 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
   - una familia tipográfica, Roboto, en tres tamaños: 26 px (título y valores de las tarjetas),
     14 px (títulos de componentes) y 12 px (todo lo demás);
   - la disposición y las coordenadas son las de la maqueta aprobada el 2026-10-08
-    ([data-model.md](data-model.md#rejilla-y-disposicion)).
+    ([data-model.md](data-model.md#rejilla-y-disposición)).
 - **Contrastes medidos** con la fórmula de WCAG 2.1:
 
   | Par | Uso | Contraste | Umbral |
@@ -263,8 +284,12 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
     texto, por eso el acento es un naranja más oscuro;
   - la validación de paleta del skill de visualización (`validate_palette.js`) pasa los cinco
     chequeos para `#0072B2` y `#B34700`, con separación CVD ΔE 22.5 (protanopia).
-- **Por verificar al construir**: que Roboto está en la lista de fuentes del tema (la documentación
-  no publica la lista). Si no está, la fuente sans por defecto del tema, que se registra.
+- **Por verificar al construir**:
+  - que Roboto está en la lista de fuentes del tema (la documentación no publica la lista). Si no
+    está, la fuente sans por defecto del tema, que se registra;
+  - el tamaño del valor de las tarjetas: `scorecard-reference` solo documenta el tamaño de la
+    etiqueta. Si el valor no se puede fijar en 26 px, se mide el que pone Data Studio y se ajustan
+    el título y los demás textos para que el total siga en 3 tamaños.
 - **Dimension value colors**: no hacen falta, porque ningún gráfico colorea por categoría. Si se
   añadiera uno, se usaría el mapa de colores por valor del informe (`the-dimension-value-color-map`)
   para que cada categoría tenga el mismo color en todo el informe.
@@ -298,10 +323,16 @@ Son los mismos datos que carga BigQuery, y el total de 2024-2025 coincide con el
     `.bigqueryrc`, imprime las cifras con el formato del tablero y comprueba cuatro cifras cruzadas
     (D1 a D4, [contracts/verificacion-sql.md](contracts/verificacion-sql.md)).
 - **Rationale**:
-  - "A query parameter value can't be NULL" (`docs.cloud.google.com/bigquery/docs/parameterized-queries`),
-    así que "sin filtro" no puede ser un NULL. El arreglo vacío lo resuelve y además reproduce la
-    selección múltiple de las listas desplegables. El tipo `ARRAY<T>` se pasa con
-    `--parameter='nombre:ARRAY<STRING>:["a","b"]'` (misma página);
+  - las listas desplegables admiten selección múltiple, y un arreglo la reproduce. El arreglo vacío
+    significa "todas". El tipo `ARRAY<T>` se pasa con `--parameter='nombre:ARRAY<STRING>:["a","b"]'`
+    (`docs.cloud.google.com/bigquery/docs/parameterized-queries`);
+  - las dos páginas oficiales no coinciden sobre NULL: `parameterized-queries` dice "A query
+    parameter value can't be NULL" y la referencia de `bq` dice que `NULL` en `--parameter`
+    "specifies a null value" (`docs.cloud.google.com/bigquery/docs/reference/bq-cli-reference`).
+    El diseño no depende de NULL;
+  - ninguna de las dos páginas documenta el arreglo vacío `[]`. El primer dry run de T016, que no
+    factura, lo comprueba. Si `bq` lo rechaza, la alternativa es pasar `NULL` con el tipo
+    `ARRAY<STRING>` y escribir el filtro como `@x IS NULL OR columna IN UNNEST(@x)`;
   - el programa `warehouse` ya construye `--parameter` (`warehouse/expectations.py`) y ya ejecuta
     dry run y labels (`warehouse/bq.py`), así que no hay dependencias nuevas;
   - ningún valor de los cinco campos de filtro contiene comas (comprobado en los CSV: 139 moléculas,

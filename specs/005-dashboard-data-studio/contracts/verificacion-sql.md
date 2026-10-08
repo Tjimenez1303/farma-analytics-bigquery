@@ -45,7 +45,7 @@ sql/dashboard/
 - Estilo del principio II: sin `SELECT *`, `GROUP BY` por nombre, `ROUND` y `ORDER BY` solo en el
   `SELECT` final, alias con `AS`, líneas de 100 caracteres o menos y SQLFluff sin violaciones.
 - Las columnas de salida y su orden son las de
-  [data-model.md](../data-model.md#consultas-de-verificacion).
+  [data-model.md](../data-model.md#consultas-de-verificación).
 - `top10_molecula_fabricante.sql` ordena por `IMPORTE DESC, MOLECULA, FABRICANTE_COMPRA` y termina
   con `LIMIT 10`. `gasto_entidad.sql` y `participacion_institucion.sql` ordenan por `IMPORTE DESC` y
   después por el nombre.

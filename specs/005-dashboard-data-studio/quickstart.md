@@ -95,6 +95,8 @@ Cada paso termina con una captura que se compara con `docs/dashboard.md`. Los pa
   documentado lo contrario, R4).
 - Con el rango 2024-01-01 a 2025-12-31, las tarjetas muestran 28 633.9 M y 55.25 M, y la comparación
   se ve como dice la especificación.
+- Con el rango 2023-01-01 a 2023-12-31, las tarjetas muestran "-" y ninguna cifra inventada.
+- Con la ventana a 1366 px de ancho, las etiquetas de las 32 entidades se leen.
 
 ## V6. Diseño y accesibilidad (Claude)
 
@@ -111,6 +113,8 @@ Cada paso termina con una captura que se compara con `docs/dashboard.md`. Los pa
    comprueba que la página carga con datos en menos de 10 segundos.
 3. El dueño abre el enlace en una ventana de incógnito de Chrome y confirma lo mismo.
 4. El enlace queda en el README y en `docs/dashboard.md`.
+5. Una persona que no conoce el proyecto responde con el enlace, en menos de 2 minutos, cuál es la
+   entidad y la institución con más importe y cuál es el par molécula-fabricante líder (SC-005).
 
 ## V8. Documentación
 

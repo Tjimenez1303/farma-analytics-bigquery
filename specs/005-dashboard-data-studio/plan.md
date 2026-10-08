@@ -15,7 +15,7 @@ demuestran que sus cifras coinciden con el SQL. El enfoque:
   negocio, tipo y agregación). Precio Promedio es un campo calculado,
   `SUM(IMPORTE) / NULLIF(SUM(PIEZAS), 0)` (R1, R2).
 - **Página**: lienzo de 1600 × 900 con rejilla de 10 px y la disposición de la maqueta aprobada el
-  2026-10-08 ([data-model.md](data-model.md#rejilla-y-disposicion)):
+  2026-10-08 ([data-model.md](data-model.md#rejilla-y-disposición)):
   - cabecera con título, subtítulo de transparencia, cinco listas desplegables en cascada, el rango
     de fechas fijo en 2025 y el botón "Restablecer filtros" (R3, R4);
   - tres tarjetas comparadas con el mismo periodo de 2024 y el recuadro "Hallazgos clave" (R5, R17);
@@ -96,8 +96,10 @@ macOS del dueño para `make bq-dashboard`. Linux (`ubuntu-latest`) para las prue
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Constitución v1.4.2. La v1.4.1 corrigió la razón de no usar "Auto" y la v1.4.2 sustituyó la lectura
-en F o Z por la regla de Few y añadió el matiz de contraste de Okabe-Ito, las dos en esta rama.
+Constitución v1.4.3. En esta rama, la v1.4.1 corrigió la razón de no usar "Auto", la v1.4.2
+sustituyó la lectura en F o Z por la regla de Few y añadió el matiz de contraste de Okabe-Ito, y la
+v1.4.3 aclaró que una escala de color que codifica una medida no es un degradado decorativo y que se
+admite una leyenda cuando no caben etiquetas directas.
 
 ### Antes de la investigación
 
@@ -121,7 +123,7 @@ en F o Z por la regla de Few y añadió el matiz de contraste de Okabe-Ito, las 
 | G2 SQL | PASA | Borrador con parámetros `ARRAY<STRING>` y `UNNEST` sin violaciones de SQLFluff 4.3.0. Parámetros de arreglo porque BigQuery no admite parámetros NULL (R12). Bloque de filtros idéntico vigilado por una prueba ([contracts/verificacion-sql.md](contracts/verificacion-sql.md)). |
 | G3 Modelado | PASA | Campos configurados en la fuente con su ID igual al nombre de la columna (R2, R3). El porcentaje de instituciones es una configuración del gráfico, no un campo, porque un porcentaje del total no se puede calcular por fila (R7). Las alternativas de R2, R9 y R11 son campos calculados en la fuente, nunca cambios en la vista. |
 | G4 Calidad | PASA | D1 a D4 con resultados exactos en `Decimal` y tolerancia solo en porcentajes. Estados inicial, filtrado, ampliado y vacío definidos ([data-model.md](data-model.md#estados-del-tablero)). |
-| G6 Dashboard | PASA con riesgos registrados | Cada regla del principio VI tiene componente y verificación. Riesgos sin documentar en Data Studio, con alternativa escrita: flechas de la tarjeta (R5), moneda MXN y `NULLIF` (R2), sufijos compactos (R11), Reset y el rango de fechas (R4), `MX-CMX` (R9) y Roboto (R10). |
+| G6 Dashboard | PASA con riesgos registrados | Cada regla del principio VI tiene componente y verificación. Riesgos sin documentar en Data Studio, con alternativa escrita que cumple la constitución: flechas de la tarjeta (R5), "Percent of total" en barras (R7), moneda MXN y `NULLIF` (R2), sufijos compactos (R11), Reset y el rango de fechas (R4), `MX-CMX` (R9), Roboto y el tamaño del valor de la tarjeta (R10). El mapa lleva leyenda de escala, que la constitución v1.4.3 admite cuando no caben etiquetas directas (R9). El top 10 tiene grano molécula-fabricante, con la definición escrita (R8). |
 | G7 Negocio | PASA | Cifras esperadas del estado inicial calculadas en local y reproducibles con `make bq-dashboard` ([data-model.md](data-model.md#cifras-esperadas-del-estado-inicial)). |
 | G8 Simplicidad y seguridad | PASA | Sin vistas materializadas, BI Engine ni extracts (R16). Sin función de tabla ni objetos nuevos (R12). Las credenciales del propietario evitan cuentas de servicio (R1). |
 | G9 Escritura | PASA | Secciones de `docs/dashboard.md` fijadas en [contracts/especificacion-dashboard.md](contracts/especificacion-dashboard.md), con pruebas locales de campos, contrastes y tamaños de letra. |
