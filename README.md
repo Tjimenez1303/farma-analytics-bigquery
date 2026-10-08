@@ -164,6 +164,65 @@ El comando escribe los tres CSV y un manifiesto con la huella SHA-256 de cada ar
 
 La carpeta `data/` no se versiona. Cuando un cambio en [`generator/config.toml`](generator/config.toml) es intencional, `make data-manifest` actualiza el manifiesto de referencia, y los dos archivos van juntos en el mismo PR.
 
+## Carga en BigQuery
+
+El esquema de las tres tablas está escrito una sola vez, en las secciones 1 y 2 de [`sql/farma_analytics.sql`](sql/farma_analytics.sql). Ese archivo se puede ejecutar entero en la consola de BigQuery, y los objetivos de `make` lo usan como única fuente: crean el dataset y las tablas con sus sentencias y derivan de ellas el esquema con el que se cargan los CSV. Estos objetivos trabajan sobre el proyecto de GCP, así que los ejecuta quien tenga acceso a él.
+
+1. Genera los datos y comprueba que coinciden con el manifiesto.
+
+   ```bash
+   make data
+   ```
+
+2. Crea el dataset `farma_analytics` y las tablas `COMPRAS`, `CLUE_CAT` y `CUADRO_BASICO`.
+
+   ```bash
+   make bq-schema
+   ```
+
+   Cada sentencia pasa antes por un dry run y solo se ejecuta si la validación no da errores. Al final, el comando compara lo publicado en BigQuery con la DDL (location, labels, tipos, modos y descripciones) y termina con `Metadatos: 0 diferencias con la DDL`. Repetirlo no cambia nada, porque las sentencias usan `CREATE ... IF NOT EXISTS`.
+
+3. Carga los CSV.
+
+   ```bash
+   make bq-load
+   ```
+
+   Antes de llamar a BigQuery, el comando verifica `data/` contra el manifiesto y las tablas publicadas contra la DDL. Después reemplaza cada tabla con un solo job de carga (`bq load --replace`) que usa el esquema derivado de la DDL, sin autodetección y sin aceptar filas malas. Un job de carga es atómico, de modo que si falla la tabla conserva lo que tenía. Al terminar ejecuta los chequeos y muestra una huella del contenido de cada tabla, que sale idéntica si cargas dos veces los mismos archivos.
+
+4. Revisa las tablas sin recargarlas.
+
+   ```bash
+   make bq-checks
+   ```
+
+5. Comprueba que cada chequeo detecta el error que le toca.
+
+   ```bash
+   make bq-checks-negativos
+   ```
+
+   Cada chequeo se ejecuta con unas pocas filas inventadas que traen un error a propósito, escritas dentro de la consulta en lugar de las tablas reales, así que no se factura ningún byte. Sirve para comprobar un chequeo después de modificarlo.
+
+Los chequeos están en [`sql/checks/`](sql/checks), uno por archivo, y cada uno devuelve 0 filas cuando su regla se cumple:
+
+- El número de filas de cada tabla es el del manifiesto (300 000, 2 000 y 161).
+- `CLUE` es única en `CLUE_CAT` y `CLAVE` es única en `CUADRO_BASICO`.
+- Las claves, `FECHA`, `PIEZAS` e `IMPORTE` no tienen nulos.
+- `PIEZAS` es mayor que cero, `IMPORTE` no es negativo y `FECHA` cae dentro del periodo del generador.
+- Las filas y el importe de `COMPRAS` cuadran con el `INNER JOIN` de los dos catálogos más las filas huérfanas, que son 750 por `CLUE` y 750 por `CLAVE`.
+- El precio por pieza de cada `CLAVE` del catálogo queda entre 6.75 y 17 820 pesos, y el más caro no supera 4.4 veces el más barato.
+
+Ninguna de esas cifras está escrita en el SQL. El programa las lee del manifiesto y de [`generator/config.toml`](generator/config.toml) y se las pasa a cada consulta como parámetros, de modo que si cambia la configuración del generador los chequeos cambian con ella. Los límites del precio salen de los parámetros de precio: el precio base más bajo por el factor genérico más bajo y el ruido a la baja, y el precio base más alto por el factor de referencia más alto y el ruido al alza.
+
+Cada consulta pasa por un dry run, lleva las labels `project` y `env` para atribuir su costo y respeta el límite de 1 GiB de `.bigqueryrc`. Los jobs de carga son la excepción, porque `bq load` no admite dry run ni labels. Por eso la validación de los CSV y del esquema se hace antes de cargar, y un job de carga no procesa bytes de consulta, así que el límite no le afecta.
+
+Las tablas no están particionadas ni agrupadas en clústeres. Suman unos 32 MB, y la documentación de BigQuery sitúa el beneficio del clustering a partir de 64 MB y el del particionado en particiones de varios GB. Tampoco declaran claves foráneas, porque `COMPRAS` tiene huérfanos a propósito y BigQuery usaría esas restricciones para eliminar joins y daría cifras incorrectas.
+
+Si cambias una descripción en la DDL después de crear las tablas, `make bq-schema` no la aplica, ya que `CREATE TABLE IF NOT EXISTS` no modifica una tabla existente. La verificación de metadatos marca la diferencia, y se corrige con `ALTER TABLE ... SET OPTIONS` o con `ALTER TABLE ... ALTER COLUMN ... SET OPTIONS` sobre el objeto afectado.
+
+Repite `make bq-load` solo cuando cambien los datos. Cada recarga reescribe las tablas y reinicia los 90 días que BigQuery espera antes de cobrarlas como almacenamiento de largo plazo. A este volumen el ahorro es pequeño, pero no hay motivo para perderlo.
+
 ## Controles de costo
 
 El repositorio limita el gasto en tres capas, porque ninguna cubre todos los casos por sí sola.
@@ -196,8 +255,8 @@ Estos objetivos ejecutan las revisiones a mano:
 
 - `make lint` ejecuta todas las revisiones de pre-commit sobre el repositorio, con el mismo comando que usa GitHub Actions.
 - `make lint-sql` revisa solo el estilo SQL.
-- `make test` ejecuta las pruebas de los scripts y del generador de datos, que no necesitan red ni credenciales.
-- `make lint-prosa` revisa el README, la carpeta `docs/` y los comentarios de los `.sql`.
+- `make test` ejecuta las pruebas de los scripts, del generador de datos y del programa de carga, que no necesitan red ni credenciales.
+- `make lint-prosa` revisa el README y la carpeta `docs/`.
 
 El lint de prosa no forma parte de los hooks. Conviene ejecutarlo antes de abrir cada PR, y también sobre el mensaje del commit y la descripción del PR, que el script acepta por la entrada estándar:
 

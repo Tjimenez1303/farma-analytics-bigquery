@@ -18,10 +18,10 @@ LOCATION = $(shell sed -n 's/^--location=//p' .bigqueryrc)
 REGION = region-$(shell printf '%s' '$(LOCATION)' | tr '[:upper:]' '[:lower:]')
 DIALECT_SQL = ALTER PROJECT \`$(PROJECT_ID)\` SET OPTIONS (\`$(REGION).default_sql_dialect_option\` = 'only_google_sql')
 
-.PHONY: help setup-dev test require-venv require-project doctor gcp-dialect gcp-quota gcp-budget gcp-setup lint lint-sql lint-prosa data data-verify data-manifest
+.PHONY: help setup-dev test require-venv require-project doctor gcp-dialect gcp-quota gcp-budget gcp-setup lint lint-sql lint-prosa data data-verify data-manifest bq-schema bq-load bq-checks bq-checks-negativos
 
 help: ## Lista los objetivos disponibles
-	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-12s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-20s %s\n", $$1, $$2}'
 
 require-venv:
 	@test -d .venv || { echo "Falta .venv: ejecuta 'make setup-dev'."; exit 1; }
@@ -53,6 +53,21 @@ gcp-budget: require-project ## Crea o actualiza la alerta de presupuesto mensual
 	@PROJECT_ID=$(PROJECT_ID) scripts/gcp_budget.sh
 
 gcp-setup: gcp-dialect gcp-quota gcp-budget ## Aplica dialecto, cuota y presupuesto
+
+# BigQuery schema, load and quality checks; job labels come from BQ_LABELS.
+WAREHOUSE = PROJECT_ID=$(PROJECT_ID) BQ_JOB_LABELS="$(BQ_LABELS)" uv run python -m warehouse
+
+bq-schema: require-venv require-project ## Crea el dataset y las tablas desde sql/farma_analytics.sql (dry run antes de cada sentencia)
+	@$(WAREHOUSE) schema
+
+bq-load: require-venv require-project ## Verifica data/, carga los CSV en BigQuery y ejecuta los chequeos
+	@$(WAREHOUSE) load
+
+bq-checks: require-venv require-project ## Ejecuta los chequeos de calidad sobre las tablas cargadas
+	@$(WAREHOUSE) checks
+
+bq-checks-negativos: require-venv require-project ## Comprueba que cada chequeo detecta su caso negativo (0 bytes facturados)
+	@$(WAREHOUSE) checks-negativos
 
 lint: require-venv ## Ejecuta los chequeos de pre-commit sobre todo el repositorio (igual que CI)
 	uv run pre-commit run --all-files

@@ -54,14 +54,14 @@ add_file() {
   local path=$1
   is_excluded "$path" && return
   case "$path" in
-    *.md | *.txt | *.sql) printf '%s\n' "$path" >> "$FILES" ;;
-    *) echo "lint_prosa: se ignora $path (solo .md, .txt y .sql)" >&2 ;;
+    *.md | *.txt) printf '%s\n' "$path" >> "$FILES" ;;
+    *) echo "lint_prosa: se ignora $path (solo .md y .txt)" >&2 ;;
   esac
 }
 
 add_dir() {
   is_excluded "$1" && return
-  find "$1" -type f \( -name '*.md' -o -name '*.txt' -o -name '*.sql' \) | sort | while read -r f; do
+  find "$1" -type f \( -name '*.md' -o -name '*.txt' \) | sort | while read -r f; do
     add_file "$f"
   done
 }
@@ -70,7 +70,6 @@ if [ $# -eq 0 ]; then
   cd "$REPO_ROOT" || exit 2
   [ -f README.md ] && add_file README.md
   [ -d docs ] && add_dir docs
-  [ -d sql ] && add_dir sql
 else
   for arg in "$@"; do
     if [ "$arg" = "-" ]; then
@@ -86,28 +85,6 @@ else
     fi
   done
 fi
-
-# Keep only SQL comments, line by line.
-sql_comments() {
-  awk '
-    {
-      line = $0; out = ""
-      while (length(line) > 0) {
-        if (inblock) {
-          e = index(line, "*/")
-          if (e) { out = out " " substr(line, 1, e - 1); line = substr(line, e + 2); inblock = 0 }
-          else { out = out " " line; line = "" }
-        } else {
-          d = index(line, "--"); b = index(line, "/*")
-          if (d && (!b || d < b)) { out = out " " substr(line, d + 2); line = "" }
-          else if (b) { line = substr(line, b + 2); inblock = 1 }
-          else { line = "" }
-        }
-      }
-      print out
-    }
-  '
-}
 
 # Blank code, ignored lines, URLs and allowed terms while keeping line numbers.
 clean_prose() {
@@ -174,10 +151,7 @@ while IFS= read -r display; do
   idx=$((idx + 1))
   if [ "$display" = "<stdin>" ]; then src="$WORK/stdin.md"; else src="$display"; fi
   clean="$WORK/clean_$idx.txt"
-  case "$display" in
-    *.sql) sql_comments < "$src" | clean_prose > "$clean" ;;
-    *) clean_prose < "$src" > "$clean" ;;
-  esac
+  clean_prose < "$src" > "$clean"
 
   results="$WORK/results_$idx.txt"
   {

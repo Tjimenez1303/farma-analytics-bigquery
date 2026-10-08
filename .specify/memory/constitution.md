@@ -160,6 +160,9 @@ leerse como referencia de estilo.
 - `SELECT *` MUST NOT aparecer en la vista ni en el entregable.
 - Cada script MUST llevar un comentario de cabecera, y cada sentencia, la pregunta de negocio que
   responde. Los comentarios explican el porqué, no el qué.
+- Los comentarios SQL MUST escribirse en inglés y ser breves, como en el resto del código, también
+  en el `.sql` entregable. Las descripciones (`OPTIONS(description = ...)`) van en español, porque
+  las leen las personas en BigQuery y en Data Studio.
 - El entregable MUST usar solo funcionalidades GA de GoogleSQL. La sintaxis pipe (`|>`) MAY
   aparecer solo en un anexo opcional que incluya la consulta equivalente en sintaxis estándar. Las
   funcionalidades en Preview MUST NOT usarse.
@@ -172,10 +175,15 @@ leerse como referencia de estilo.
   - usar funciones de ventana en lugar de self-joins;
   - usar UDF en SQL en lugar de JavaScript;
   - usar `LIKE` en lugar de `REGEXP_CONTAINS` cuando baste.
-- Cada sentencia MUST validarse con un dry run antes de ejecutarla. El dry run es gratuito, no usa
-  slots y devuelve una cota superior de los bytes procesados.
-- Los jobs MUST tener un `--maximum_bytes_billed`, fijado en `.bigqueryrc`. Si la estimación
-  supera ese límite, la consulta falla sin cobrarse.
+- Cada job de consulta (DDL, DML y consultas) MUST validarse con un dry run antes de ejecutarse.
+  El dry run es gratuito, no usa slots y devuelve una cota superior de los bytes procesados.
+- Los jobs de carga (`bq load`) no admiten dry run: el flag es de `bq query` y la API dice que el
+  dry run en jobs que no son consultas tiene un comportamiento no definido. Antes de cada carga
+  MUST verificarse en local que los archivos coinciden con el manifiesto del generador y que el
+  esquema de la carga coincide con la DDL.
+- Los jobs de consulta MUST tener un `--maximum_bytes_billed`, fijado en `.bigqueryrc`. Si la
+  estimación supera ese límite, la consulta falla sin cobrarse. El límite no aplica a los jobs de
+  carga, que no procesan bytes de consulta.
 - Para explorar datos MUST usarse la vista previa de la consola o `bq head`, que son gratuitas, y
   no consultas. `LIMIT` MUST NOT tratarse como control de costo: en tablas sin clustering no reduce
   los bytes leídos.
@@ -441,11 +449,12 @@ las marcas que delatan texto generado por IA.
   - `README.md` y los ADR (`docs/decisiones/`);
   - el documento de hallazgos, el diccionario de datos y la especificación del dashboard;
   - el guion del video;
-  - los comentarios dentro de los `.sql` entregables;
   - las descripciones de PR y el cuerpo de los mensajes de commit.
 - La regla NO aplica a los artefactos de Spec Kit (esta constitución, specs, planes, tareas y
   checklists) ni a los archivos de configuración. Esos documentos mantienen su formato estructurado
   de plantilla.
+- Tampoco aplica a los comentarios de código, incluidos los de los `.sql`, que van en inglés según
+  el principio II.
 
 **Puntuación y símbolos prohibidos en prosa**
 
@@ -568,7 +577,6 @@ las marcas que delatan texto generado por IA.
 
 - Un script versionado (`scripts/lint_prosa.sh`) MUST revisar con `ripgrep` la documentación del
   alcance. Antes de revisar, el script quita los bloques de código, el código en línea y las URL.
-  En los `.sql` solo revisa los comentarios.
 - El script marca:
   - rayas y semirrayas;
   - guiones usados como raya;
@@ -645,8 +653,9 @@ las marcas que delatan texto generado por IA.
   - MUST NOT usarse valores volátiles o únicos, como timestamps o IDs de ejecución.
   - Las labels de tablas y vistas no llegan a los datos de facturación. Para atribuir costos, el
     dataset lleva labels (`project`, `env`, `owner`), que cuentan en la facturación de
-    almacenamiento, y los jobs del `Makefile` llevan `--label`, que cuenta en la facturación de
-    cómputo.
+    almacenamiento, y los jobs de consulta del `Makefile` llevan `--label`, que cuenta en la
+    facturación de cómputo.
+  - `bq` solo admite labels en jobs de consulta, así que los jobs de carga van sin labels.
 - Expiración:
   - Google recomienda configurar la expiración por defecto en datasets y tablas. En este proyecto
     MAY aplicarse solo a datasets auxiliares o temporales (por ejemplo,
@@ -682,7 +691,8 @@ las marcas que delatan texto generado por IA.
 
 **Costo y disponibilidad**
 
-- Todos los jobs usan dry run, y el límite `--maximum_bytes_billed` viene de `.bigqueryrc`.
+- Todos los jobs de consulta usan dry run, y el límite `--maximum_bytes_billed` viene de
+  `.bigqueryrc`. Los jobs de carga se validan antes en local, como indica el principio II.
 - Si se usa el sandbox, MUST documentarse que tablas y vistas expiran a los 60 días, y MUST
   garantizarse que sigan disponibles durante la ventana de revisión.
 - SHOULD preferirse un proyecto con facturación con estos controles:
@@ -724,8 +734,7 @@ otra vez después del diseño.
 
 **Definición de terminado por entregable**
 
-- `.sql`: se ejecuta sin errores en la consola, pasa SQLFluff y los chequeos, y sus comentarios
-  pasan el chequeo de prosa.
+- `.sql`: se ejecuta sin errores en la consola y pasa SQLFluff y los chequeos.
 - Dashboard: abre con datos en una ventana de incógnito, todos los controles funcionan y cumple la
   lista del principio VI.
 - Hallazgos: 2 hallazgos con la evidencia que exige el principio VII, en un documento que cumple el
@@ -843,4 +852,4 @@ documentación oficial el 2026-10-07.
     - Alonso Simón et al. (UCM, RAEL 2025) sobre rasgos de GPT en español;
     - el *Diccionario panhispánico de dudas*.
 
-**Version**: 1.2.1 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.3.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08

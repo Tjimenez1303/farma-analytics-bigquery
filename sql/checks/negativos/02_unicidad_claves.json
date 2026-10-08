@@ -1,0 +1,87 @@
+{
+  "esperado": {
+    "CHEQUEO": "unicidad_claves",
+    "OBJETO": "CLUE_CAT.CLUE"
+  },
+  "tablas": {
+    "COMPRAS": [
+      {
+        "CLUE": "JCIMS000101",
+        "CLAVE": "010.000.0101.00",
+        "COD_PROVEEDOR": "PRV00001",
+        "MARCA": "Pruebamol",
+        "FABRICANTE": "Laboratorio de Prueba Uno, S.A. de C.V.",
+        "PIEZAS": "10",
+        "IMPORTE": "200.00",
+        "FECHA": "2024-03-04"
+      },
+      {
+        "CLUE": "DFIST000202",
+        "CLAVE": "010.000.0202.00",
+        "COD_PROVEEDOR": "PRV00001",
+        "MARCA": "Pruebamol",
+        "FABRICANTE": "Laboratorio de Prueba Uno, S.A. de C.V.",
+        "PIEZAS": "5",
+        "IMPORTE": "150.00",
+        "FECHA": "2025-06-10"
+      },
+      {
+        "CLUE": "JCIMS000101",
+        "CLAVE": "010.000.0202.00",
+        "COD_PROVEEDOR": "PRV00001",
+        "MARCA": "Pruebamol",
+        "FABRICANTE": "Laboratorio de Prueba Uno, S.A. de C.V.",
+        "PIEZAS": "8",
+        "IMPORTE": "240.00",
+        "FECHA": "2025-11-20"
+      }
+    ],
+    "CLUE_CAT": [
+      {
+        "CLUE": "JCIMS000101",
+        "ENTIDAD": "Jalisco",
+        "INSTITUCION": "IMSS",
+        "DELEGACION": "OOAD Jalisco",
+        "GRUPO_INSTITUCIONAL": "Seguridad social",
+        "NIVEL_ATENCION": "Primer nivel",
+        "MUNICIPIO": "Guadalajara"
+      },
+      {
+        "CLUE": "DFIST000202",
+        "ENTIDAD": "Ciudad de México",
+        "INSTITUCION": "ISSSTE",
+        "DELEGACION": "Oficina de Representación Ciudad de México",
+        "GRUPO_INSTITUCIONAL": "Seguridad social",
+        "NIVEL_ATENCION": "Segundo nivel",
+        "MUNICIPIO": "Coyoacán"
+      },
+      {
+        "CLUE": "JCIMS000101",
+        "ENTIDAD": "Jalisco",
+        "INSTITUCION": "IMSS",
+        "DELEGACION": "OOAD Jalisco",
+        "GRUPO_INSTITUCIONAL": "Seguridad social",
+        "NIVEL_ATENCION": "Primer nivel",
+        "MUNICIPIO": "Zapopan"
+      }
+    ],
+    "CUADRO_BASICO": [
+      {
+        "CLAVE": "010.000.0101.00",
+        "DESCRIPCION": "Paracetamol. Tableta. Cada tableta contiene: paracetamol 500 mg. Envase con 10 tabletas.",
+        "MOLECULA": "Paracetamol",
+        "GRUPO_TERAPEUTICO": "Analgesia",
+        "PRESENTACION": "Tableta 500 mg. Envase con 10 tabletas",
+        "FABRICANTE": "Laboratorio de Prueba Uno, S.A. de C.V."
+      },
+      {
+        "CLAVE": "010.000.0202.00",
+        "DESCRIPCION": "Metformina. Tableta. Cada tableta contiene: metformina 850 mg. Envase con 30 tabletas.",
+        "MOLECULA": "Metformina",
+        "GRUPO_TERAPEUTICO": "Endocrinología y Metabolismo",
+        "PRESENTACION": "Tableta 850 mg. Envase con 30 tabletas",
+        "FABRICANTE": "Laboratorio de Prueba Dos, S.A. de C.V."
+      }
+    ]
+  }
+}
