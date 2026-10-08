@@ -45,6 +45,23 @@ def run_script():
     return _run
 
 
+def system_path_without(names, root):
+    """SYSTEM_PATH, or a symlink copy of its executables minus names when any of them lives there."""
+    if not any(shutil.which(name, path=SYSTEM_PATH) for name in names):
+        return SYSTEM_PATH
+    sysbin = root / "sysbin"
+    sysbin.mkdir()
+    for directory in SYSTEM_PATH.split(":"):
+        if not os.path.isdir(directory):
+            continue
+        for entry in sorted(Path(directory).iterdir()):
+            link = sysbin / entry.name
+            if entry.name in names or link.is_symlink() or link.exists():
+                continue
+            link.symlink_to(entry)
+    return str(sysbin)
+
+
 @pytest.fixture
 def stub_path(tmp_path):
     """Copy the stubs to a temp dir and return an env dict that puts them first in PATH."""
@@ -55,7 +72,7 @@ def stub_path(tmp_path):
         for name in remove:
             (stubs / "bin" / name).unlink()
         env = {
-            "PATH": f"{stubs / 'bin'}:{SYSTEM_PATH}",
+            "PATH": f"{stubs / 'bin'}:{system_path_without(remove, tmp_path)}",
             "STUB_LOG": str(tmp_path / "stub.log"),
             "REAL_PYTHON": sys.executable,
             "DOCTOR_VENV": str(stubs / "venv"),
