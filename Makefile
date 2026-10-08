@@ -26,9 +26,8 @@ help: ## Lista los objetivos disponibles
 require-venv:
 	@test -d .venv || { echo "Falta .venv: ejecuta 'make setup-dev'."; exit 1; }
 
-setup-dev: ## Instala Python, dependencias de desarrollo, Dataform CLI y hooks
+setup-dev: ## Instala Python, las dependencias de desarrollo y los hooks de pre-commit
 	uv sync --locked
-	npm ci
 	@if [ -f .pre-commit-config.yaml ]; then uv run pre-commit install; else echo "Sin .pre-commit-config.yaml: hooks no instalados."; fi
 
 test: require-venv ## Ejecuta las pruebas automatizadas

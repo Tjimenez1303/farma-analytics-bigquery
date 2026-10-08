@@ -68,7 +68,7 @@ def test_healthy_environment(doctor):
     assert checks["B03"][0] == "OMITIDO"
     others = {k: v[0] for k, v in checks.items() if k != "B03"}
     assert set(others.values()) == {"OK"}, others
-    assert len(checks) == 24
+    assert len(checks) == 22
     assert "Resumen:" in proc.stdout
 
 
@@ -76,7 +76,6 @@ def test_healthy_environment(doctor):
     "check, kwargs",
     [
         ("T08", {"remove": ("rg",)}),
-        ("T04", {"overrides": {"STUB_NODE_VERSION": "20.11.0"}}),
         ("T03", {"overrides": {"STUB_PYTHON_VERSION": "3.11.9"}}),
         ("A02", {"overrides": {"STUB_ADC": "missing"}}),
         ("P01", {"overrides": {"STUB_PROJECT": ""}}),

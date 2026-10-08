@@ -8,8 +8,7 @@ set -u
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 TIMEOUT="${DOCTOR_TIMEOUT:-10}"
 VENV="${DOCTOR_VENV:-$REPO_ROOT/.venv}"
-NODE_BIN="${DOCTOR_NODE_BIN:-$REPO_ROOT/node_modules/.bin}"
-CATALOG="T01 T02 T03 T04 T05 T06 T07 T08 T09 T10 C01 C02 C03 N01 A01 A02 A03 A04 P01 P02 B01 B02 B03 B04"
+CATALOG="T01 T02 T03 T06 T07 T08 T09 T10 C01 C02 C03 N01 A01 A02 A03 A04 P01 P02 B01 B02 B03 B04"
 N_OK=0
 N_AVISO=0
 N_FALLO=0
@@ -213,14 +212,6 @@ if depends_on T03 "Python del proyecto" T10; then
   fi
 fi
 
-check_min T04 "Node.js" node "$MIN_NODE" \
-  "brew install node@22 (macOS) o https://nodejs.org (Linux)" \
-  "node --version"
-
-if depends_on T05 "Dataform CLI" T04; then
-  df_pin=$(sed -n 's/.*"@dataform\/cli": *"\([^"]*\)".*/\1/p' "$REPO_ROOT/package.json")
-  check_exact T05 "Dataform CLI" "$(locate dataform "$NODE_BIN")" "$df_pin" "make setup-dev"
-fi
 if depends_on T06 "SQLFluff" T03; then
   check_exact T06 "SQLFluff" "$(locate sqlfluff "$VENV/bin")" "$(dev_pin sqlfluff)" "make setup-dev"
 fi

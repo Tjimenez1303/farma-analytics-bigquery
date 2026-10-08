@@ -17,10 +17,8 @@ Cloud
 Data
 Studio
 Looker
-Dataform
 SQLFluff
 Python
-Node
 Homebrew
 Linux
 macOS

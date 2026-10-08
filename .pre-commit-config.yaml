@@ -36,4 +36,4 @@ repos:
         name: forbid credential files
         entry: No se pueden versionar archivos de credenciales ni .env. Quita el archivo del commit.
         language: fail
-        files: (^|/)(\.env(\.(?!example$)[^/]*)?|\.df-credentials\.json|application_default_credentials\.json|[^/]*service-account[^/]*\.json|[^/]*-key\.json|[^/]*\.p12)$
+        files: (^|/)(\.env(\.(?!example$)[^/]*)?|application_default_credentials\.json|[^/]*service-account[^/]*\.json|[^/]*-key\.json|[^/]*\.p12)$
