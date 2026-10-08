@@ -39,6 +39,7 @@ def run_script():
             capture_output=True,
             text=True,
             timeout=60,
+            check=False,
         )
 
     return _run

@@ -2,14 +2,31 @@
 name = "farma-analytics-bigquery"
 version = "0.1.0"
 requires-python = ">=3.12"
+dependencies = [
+    "faker==40.39.0",
+    "numpy==2.5.3",
+]
 
 [dependency-groups]
 dev = [
     "sqlfluff==4.3.0",
     "pre-commit==4.6.2",
     "pytest==9.1.1",
+    "ruff==0.16.8",
 ]
 
 [tool.uv]
 package = false
 required-version = ">=0.12.0"
+
+[tool.pytest]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = ["--import-mode=importlib", "-ra"]
+strict = true
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["B", "I", "UP"]

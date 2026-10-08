@@ -1,6 +1,5 @@
 """Tests for scripts/lint_prosa.sh."""
 
-import os
 import re
 import shutil
 
@@ -32,7 +31,9 @@ def lint(run_script, repo_root):
 
     def _run(*args, env=None, input=None):
         proc = run_script([repo_root / "scripts" / "lint_prosa.sh", *args], env=env, input=input)
-        marks = [MARK.match(line).groupdict() for line in proc.stdout.splitlines() if MARK.match(line)]
+        marks = [
+            MARK.match(line).groupdict() for line in proc.stdout.splitlines() if MARK.match(line)
+        ]
         return proc, marks
 
     return _run

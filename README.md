@@ -150,6 +150,20 @@ Resumen: 23 OK, 0 AVISO, 0 FALLO, 1 OMITIDO
 
 Cuando un chequeo falla, la línea `remedio:` indica el comando o el paso que lo corrige. `make help` lista todos los objetivos disponibles.
 
+## Datos sintéticos
+
+Los datos de las tres fuentes (`COMPRAS`, `CLUE_CAT` y `CUADRO_BASICO`) son sintéticos. Los fabricantes, las marcas y los proveedores son empresas ficticias, y las unidades médicas, las claves y las compras también son inventadas. Los nombres de las entidades, los municipios, las instituciones y las moléculas sí son reales, para que el análisis se parezca a un mercado verdadero. [`docs/datos_sinteticos.md`](docs/datos_sinteticos.md) describe cada campo, los patrones que el generador inyecta a propósito y las fuentes de los catálogos de referencia.
+
+Para generar los datos en `data/` y comprobar que son idénticos a los de referencia:
+
+```bash
+make data
+```
+
+El comando escribe los tres CSV y un manifiesto con la huella SHA-256 de cada archivo, y lo compara con [`generator/manifest.json`](generator/manifest.json). Cada archivo debe salir como `OK`. Un `DIFIERE` indica que los bytes no coinciden, y el mensaje muestra las versiones de Python, NumPy y Faker de cada lado, porque la igualdad exacta solo está garantizada en el mismo entorno. `make data-verify` repite la comprobación sin regenerar.
+
+La carpeta `data/` no se versiona. Cuando un cambio en [`generator/config.toml`](generator/config.toml) es intencional, `make data-manifest` actualiza el manifiesto de referencia, y los dos archivos van juntos en el mismo PR.
+
 ## Controles de costo
 
 El repositorio limita el gasto en tres capas, porque ninguna cubre todos los casos por sí sola.
@@ -176,13 +190,13 @@ export BIGQUERYRC="$PWD/.bigqueryrc"
 
 ## Calidad
 
-Cada commit pasa por dos revisiones automáticas que instala `make setup-dev` con pre-commit. SQLFluff revisa el estilo de los archivos `.sql` con las reglas de [`.sqlfluff`](.sqlfluff), y otro hook bloquea los archivos `.env`, las claves de cuenta de servicio y las credenciales de Dataform. GitHub Actions ejecuta las mismas revisiones en cada pull request hacia `main` sin acceso a GCP. El check avisa en el PR, pero no impide el merge.
+Cada commit pasa por las revisiones automáticas que instala `make setup-dev` con pre-commit. SQLFluff revisa el estilo de los archivos `.sql` con las reglas de [`.sqlfluff`](.sqlfluff), Ruff revisa el estilo y el formato del código Python con la configuración de [`pyproject.toml`](pyproject.toml), y otro hook bloquea los archivos `.env`, las claves de cuenta de servicio y las credenciales de Dataform. GitHub Actions ejecuta las mismas revisiones y las pruebas en cada pull request hacia `main`, sin acceso a GCP. Los checks avisan en el PR, pero no impiden el merge.
 
 Estos objetivos ejecutan las revisiones a mano:
 
 - `make lint` ejecuta todas las revisiones de pre-commit sobre el repositorio, con el mismo comando que usa GitHub Actions.
 - `make lint-sql` revisa solo el estilo SQL.
-- `make test` ejecuta las pruebas de los scripts, que no necesitan red ni credenciales.
+- `make test` ejecuta las pruebas de los scripts y del generador de datos, que no necesitan red ni credenciales.
 - `make lint-prosa` revisa el README, la carpeta `docs/` y los comentarios de los `.sql`.
 
 El lint de prosa no forma parte de los hooks. Conviene ejecutarlo antes de abrir cada PR, y también sobre el mensaje del commit y la descripción del PR, que el script acepta por la entrada estándar:

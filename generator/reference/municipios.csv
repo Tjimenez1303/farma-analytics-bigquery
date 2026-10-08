@@ -1,0 +1,222 @@
+cve_ent,cve_mun,municipio,poblacion_2020
+01,001,Aguascalientes,948990
+01,002,Asientos,51536
+01,003,Calvillo,58250
+01,005,Jesús María,129929
+01,006,Pabellón de Arteaga,47646
+01,007,Rincón de Romos,57369
+01,011,San Francisco de los Romo,61997
+02,001,Ensenada,443807
+02,002,Mexicali,1049792
+02,003,Tecate,108440
+02,004,Tijuana,1922523
+02,005,Playas de Rosarito,126890
+02,006,San Quintín,117568
+03,001,Comondú,73021
+03,002,Mulegé,64022
+03,003,La Paz,292241
+03,008,Los Cabos,351111
+03,009,Loreto,18052
+04,001,Calkiní,59232
+04,002,Campeche,294077
+04,003,Carmen,248845
+04,004,Champotón,78170
+04,006,Hopelchén,42140
+04,009,Escárcega,59923
+04,011,Candelaria,46913
+05,002,Acuña,163058
+05,017,Matamoros,118337
+05,018,Monclova,237951
+05,025,Piedras Negras,176327
+05,027,Ramos Arizpe,122243
+05,030,Saltillo,879958
+05,035,Torreón,720848
+06,001,Armería,27626
+06,002,Colima,157048
+06,003,Comala,21661
+06,005,Cuauhtémoc,31267
+06,007,Manzanillo,191031
+06,009,Tecomán,116305
+06,010,Villa de Álvarez,149762
+07,019,Comitán de Domínguez,166178
+07,031,Chilón,137262
+07,052,Las Margaritas,141027
+07,059,Ocosingo,234661
+07,078,San Cristóbal de las Casas,215874
+07,089,Tapachula,353706
+07,101,Tuxtla Gutiérrez,604147
+08,017,Cuauhtémoc,180638
+08,019,Chihuahua,937674
+08,021,Delicias,150506
+08,029,Guadalupe y Calvo,50514
+08,032,Hidalgo del Parral,116662
+08,037,Juárez,1512450
+08,050,Nuevo Casas Grandes,65753
+09,003,Coyoacán,614447
+09,005,Gustavo A. Madero,1173351
+09,007,Iztapalapa,1835486
+09,010,Álvaro Obregón,759137
+09,012,Tlalpan,699928
+09,015,Cuauhtémoc,545884
+09,017,Venustiano Carranza,443704
+10,005,Durango,688697
+10,007,Gómez Palacio,372750
+10,008,Guadalupe Victoria,36695
+10,012,Lerdo,163313
+10,014,Mezquital,48583
+10,023,Pueblo Nuevo,51269
+10,032,Santiago Papasquiaro,49207
+11,003,San Miguel de Allende,174615
+11,007,Celaya,521169
+11,015,Guanajuato,194500
+11,017,Irapuato,592953
+11,020,León,1721215
+11,027,Salamanca,273417
+11,037,Silao de la Victoria,203556
+12,001,Acapulco de Juárez,779566
+12,028,Chilapa de Álvarez,123722
+12,029,Chilpancingo de los Bravo,283354
+12,035,Iguala de la Independencia,154173
+12,038,Zihuatanejo de Azueta,126001
+12,055,Taxco de Alarcón,105586
+12,066,Tlapa de Comonfort,96125
+13,028,Huejutla de Reyes,126781
+13,030,Ixmiquilpan,98654
+13,048,Pachuca de Soto,314331
+13,051,Mineral de la Reforma,202749
+13,069,Tizayuca,168302
+13,076,Tula de Allende,115107
+13,077,Tulancingo de Bravo,168369
+14,039,Guadalajara,1385629
+14,067,Puerto Vallarta,291839
+14,070,El Salto,232852
+14,097,Tlajomulco de Zúñiga,727750
+14,098,San Pedro Tlaquepaque,687127
+14,101,Tonalá,569913
+14,120,Zapopan,1476491
+15,031,Chimalhuacán,705193
+15,033,Ecatepec de Morelos,1645352
+15,057,Naucalpan de Juárez,834434
+15,058,Nezahualcóyotl,1077208
+15,104,Tlalnepantla de Baz,672202
+15,106,Toluca,910608
+15,121,Cuautitlán Izcalli,555163
+16,006,Apatzingán,126191
+16,034,Hidalgo,125712
+16,052,Lázaro Cárdenas,196003
+16,053,Morelia,849053
+16,102,Uruapan,356786
+16,108,Zamora,204860
+16,112,Zitácuaro,157056
+17,004,Ayala,89834
+17,006,Cuautla,187118
+17,007,Cuernavaca,378476
+17,008,Emiliano Zapata,107053
+17,011,Jiutepec,215357
+17,018,Temixco,122263
+17,029,Yautepec,105780
+18,004,Compostela,77436
+18,008,Xalisco,65229
+18,009,Del Nayar,47550
+18,012,San Blas,41518
+18,015,Santiago Ixcuintla,93981
+18,017,Tepic,425924
+18,020,Bahía de Banderas,187632
+19,006,Apodaca,656464
+19,018,García,397205
+19,021,General Escobedo,481213
+19,026,Guadalupe,643143
+19,031,Juárez,471523
+19,039,Monterrey,1142994
+19,046,San Nicolás de los Garza,412199
+20,039,Heroica Ciudad de Huajuapan de León,78313
+20,043,Heroica Ciudad de Juchitán de Zaragoza,113570
+20,067,Oaxaca de Juárez,270955
+20,079,Salina Cruz,84438
+20,184,San Juan Bautista Tuxtepec,159452
+20,385,Santa Cruz Xoxocotlán,100402
+20,515,Santo Domingo Tehuantepec,67739
+21,019,Atlixco,141793
+21,041,Cuautlancingo,137435
+21,114,Puebla,1692181
+21,119,San Andrés Cholula,154448
+21,132,San Martín Texmelucan,155738
+21,140,San Pedro Cholula,138433
+21,156,Tehuacán,327312
+22,004,Cadereyta de Montes,69075
+22,006,Corregidora,212567
+22,011,El Marqués,231668
+22,012,Pedro Escobedo,77404
+22,014,Querétaro,1049777
+22,016,San Juan del Río,297804
+22,017,Tequisquiapan,72201
+23,001,Cozumel,88626
+23,002,Felipe Carrillo Puerto,83990
+23,004,Othón P. Blanco,233648
+23,005,Benito Juárez,911503
+23,008,Playa del Carmen,333800
+23,009,Tulum,46721
+23,010,Bacalar,41754
+24,013,Ciudad Valles,179371
+24,020,Matehuala,102199
+24,021,Mexquitic de Carmona,58469
+24,024,Rioverde,97943
+24,028,San Luis Potosí,911908
+24,035,Soledad de Graciano Sánchez,332072
+24,037,Tamazunchale,95037
+25,001,Ahome,459310
+25,006,Culiacán,1003530
+25,010,El Fuerte,96593
+25,011,Guasave,289370
+25,012,Mazatlán,501441
+25,015,Salvador Alvarado,79492
+25,018,Navolato,149122
+26,002,Agua Prieta,91929
+26,018,Cajeme,436484
+26,029,Guaymas,156863
+26,030,Hermosillo,936263
+26,042,Navojoa,164387
+26,043,Nogales,264782
+26,055,San Luis Río Colorado,199021
+27,002,Cárdenas,243229
+27,004,Centro,683607
+27,005,Comalcalco,214877
+27,006,Cunduacán,137257
+27,008,Huimanguillo,190885
+27,012,Macuspana,158601
+27,013,Nacajuca,150300
+28,003,Altamira,269790
+28,009,Ciudad Madero,205933
+28,022,Matamoros,541979
+28,027,Nuevo Laredo,425058
+28,032,Reynosa,704767
+28,038,Tampico,297562
+28,041,Victoria,349688
+29,005,Apizaco,80725
+29,006,Calpulalpan,51172
+29,010,Chiautempan,73215
+29,013,Huamantla,98764
+29,025,San Pablo del Monte,82688
+29,033,Tlaxcala,99896
+29,044,Zacatelco,45717
+30,039,Coatzacoalcos,310698
+30,044,Córdoba,204721
+30,087,Xalapa,488531
+30,124,Papantla,159910
+30,131,Poza Rica de Hidalgo,189457
+30,141,San Andrés Tuxtla,162428
+30,193,Veracruz,607209
+31,041,Kanasín,141939
+31,050,Mérida,995129
+31,059,Progreso,66008
+31,079,Tekax,45062
+31,096,Tizimín,80672
+31,101,Umán,69147
+31,102,Valladolid,85460
+32,010,Fresnillo,240532
+32,017,Guadalupe,211740
+32,020,Jerez,59910
+32,038,Pinos,72241
+32,039,Río Grande,64535
+32,042,Sombrerete,63665
+32,056,Zacatecas,149607
